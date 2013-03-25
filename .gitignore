@@ -1,0 +1,6 @@
+.svn
+.DS_Store
+._*
+*.pyc
+*.egg-info
+TODO.txt
