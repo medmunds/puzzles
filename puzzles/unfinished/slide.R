@@ -1,0 +1,24 @@
+# -*- makefile -*-
+
+SLIDE_EXTRA    = dsf tree234
+
+slide          : [X] GTK COMMON slide SLIDE_EXTRA slide-icon|no-icon
+
+slide          : [G] WINDOWS COMMON slide SLIDE_EXTRA slide.res|noicon.res
+
+slidesolver :   [U] slide[STANDALONE_SOLVER] SLIDE_EXTRA STANDALONE
+slidesolver :   [C] slide[STANDALONE_SOLVER] SLIDE_EXTRA STANDALONE
+
+ALL += slide[COMBINED] SLIDE_EXTRA
+
+!begin gtk
+GAMES += slide
+!end
+
+!begin >list.c
+    A(slide) \
+!end
+
+!begin >wingames.lst
+slide.exe:Slide
+!end
