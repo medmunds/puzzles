@@ -15,6 +15,7 @@
 !makefile osx Makefile.osx
 !makefile gnustep Makefile.gnustep
 !makefile nestedvm Makefile.nestedvm
+!makefile emcc Makefile.emcc
 
 !srcdir icons/
 
@@ -23,6 +24,7 @@ WINDOWS_COMMON = printing
 WINDOWS  = windows WINDOWS_COMMON
 COMMON   = midend drawing misc malloc random version
 GTK      = gtk printing ps
+EMCC     = emcc
 # Objects needed for auxiliary command-line programs.
 STANDALONE = nullfe random misc malloc
 
