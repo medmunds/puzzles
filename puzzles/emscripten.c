@@ -13,12 +13,35 @@
 
 #include <sys/time.h>
 
+#include <emscripten/emscripten.h> /* for emscripten_set_main_loop */
+
 #include "puzzles.h"
 
-#ifdef NOTYET
 
-extern void _pause();
-extern int _call_java(int cmd, int arg1, int arg2, int arg3);
+/* The global frontend: a JavaScript object (opaque to us) */
+static frontend *_fe;
+
+extern frontend *frontend_new(void);
+extern void frontend_set_midend(frontend *fe, midend *me);
+extern midend *frontend_get_midend(frontend *fe);
+
+
+/*
+ * Mid-end to front-end calls
+ * http://www.chiark.greenend.org.uk/~sgtatham/puzzles/devel/midend.html#frontend-api
+ */
+
+void get_random_seed(void **randseed, int *randseedsize)
+{
+    // TODO: move to JS?
+    struct timeval *tvp = snew(struct timeval);
+    gettimeofday(tvp, NULL);
+    *randseed = (void *)tvp;
+    *randseedsize = sizeof(struct timeval);
+}
+
+extern void activate_timer(frontend *fe);
+extern void deactivate_timer(frontend *fe);
 
 void fatal(char *fmt, ...)
 {
@@ -31,151 +54,47 @@ void fatal(char *fmt, ...)
     exit(1);
 }
 
-struct frontend {
-    // TODO kill unneeded members!
-    midend *me;
-    int timer_active;
-    struct timeval last_time;
-    config_item *cfg;
-    int cfg_which, cfgret;
-    int ox, oy, w, h;
-};
-
-static frontend *_fe;
-
-void get_random_seed(void **randseed, int *randseedsize)
-{
-    struct timeval *tvp = snew(struct timeval);
-    gettimeofday(tvp, NULL);
-    *randseed = (void *)tvp;
-    *randseedsize = sizeof(struct timeval);
-}
-
 void frontend_default_colour(frontend *fe, float *output)
 {
+    // TODO: pull this from css via js
     output[0] = output[1]= output[2] = 0.8f;
 }
 
-void canvas_status_bar(void *handle, char *text)
-{
-    _call_java(4,0,(int)text,0);
-}
 
-void canvas_start_draw(void *handle)
-{
-    frontend *fe = (frontend *)handle;
-    _call_java(5, 0, fe->w, fe->h);
-    _call_java(4, 1, fe->ox, fe->oy);
-}
+/*
+ * Front-end Drawing API
+ * http://www.chiark.greenend.org.uk/~sgtatham/puzzles/devel/drawing.html#drawing-frontend
+ */
 
-void canvas_clip(void *handle, int x, int y, int w, int h)
-{
-    frontend *fe = (frontend *)handle;
-    _call_java(5, w, h, 0);
-    _call_java(4, 3, x + fe->ox, y + fe->oy);
-}
+extern void *canvas_new(void);
+extern void canvas_set_palette_entry(void *handle, int index, int r, int g, int b);
 
-void canvas_unclip(void *handle)
-{
-    frontend *fe = (frontend *)handle;
-    _call_java(4, 4, fe->ox, fe->oy);
-}
+extern void canvas_status_bar(void *handle, char *text);
+extern void canvas_start_draw(void *handle);
+extern void canvas_clip(void *handle, int x, int y, int w, int h);
+extern void canvas_unclip(void *handle);
+extern void canvas_draw_text(void *handle, int x, int y, int fonttype, int fontsize,
+		   int align, int colour, char *text);
+extern void canvas_draw_rect(void *handle, int x, int y, int w, int h, int colour);
+extern void canvas_draw_line(void *handle, int x1, int y1, int x2, int y2, int colour);
+extern void canvas_draw_poly(void *handle, int *coords, int npoints,
+			int fillcolour, int outlinecolour);
+extern void canvas_draw_circle(void *handle, int cx, int cy, int radius,
+		     int fillcolour, int outlinecolour);
+extern void canvas_draw_update(void *handle, int x, int y, int w, int h);
 
-void canvas_draw_text(void *handle, int x, int y, int fonttype, int fontsize,
-		   int align, int colour, char *text)
-{
-    frontend *fe = (frontend *)handle;
-    _call_java(5, x + fe->ox, y + fe->oy, 
-	       (fonttype == FONT_FIXED ? 0x10 : 0x0) | align);
-    _call_java(7, fontsize, colour, (int)text);
-}
+extern blitter *canvas_blitter_new(void *handle, int w, int h);
+extern void canvas_blitter_free(void *handle, blitter *bl);
+extern void canvas_blitter_save(void *handle, blitter *bl, int x, int y);
+extern void canvas_blitter_load(void *handle, blitter *bl, int x, int y);
+extern void canvas_end_draw(void *handle);
 
-void canvas_draw_rect(void *handle, int x, int y, int w, int h, int colour)
-{
-    frontend *fe = (frontend *)handle;
-    _call_java(5, w, h, colour);
-    _call_java(4, 5, x + fe->ox, y + fe->oy);
-}
-
-void canvas_draw_line(void *handle, int x1, int y1, int x2, int y2,
-			int colour)
-{
-    frontend *fe = (frontend *)handle;
-    _call_java(5, x2 + fe->ox, y2 + fe->oy, colour);
-    _call_java(4, 6, x1 + fe->ox, y1 + fe->oy);
-}
-
-void canvas_draw_poly(void *handle, int *coords, int npoints,
-			int fillcolour, int outlinecolour)
-{
-    frontend *fe = (frontend *)handle;
-    int i;
-    _call_java(4, 7, npoints, 0);
-    for (i = 0; i < npoints; i++) {
-	_call_java(6, i, coords[i*2] + fe->ox, coords[i*2+1] + fe->oy);
-    }
-    _call_java(4, 8, outlinecolour, fillcolour);
-}
-
-void canvas_draw_circle(void *handle, int cx, int cy, int radius,
-		     int fillcolour, int outlinecolour)
-{
-    frontend *fe = (frontend *)handle;
-    _call_java(5, cx+fe->ox, cy+fe->oy, radius);
-    _call_java(4, 9, outlinecolour, fillcolour);
-}
-
-struct blitter {
-    int handle, w, h, x, y;
-};
-
-blitter *canvas_blitter_new(void *handle, int w, int h)
-{
-    blitter *bl = snew(blitter);
-    bl->handle = -1;
-    bl->w = w;
-    bl->h = h;
-    return bl;
-}
-
-void canvas_blitter_free(void *handle, blitter *bl)
-{
-    if (bl->handle != -1)
-	_call_java(4, 11, bl->handle, 0);
-    sfree(bl);
-}
-
-void canvas_blitter_save(void *handle, blitter *bl, int x, int y)
-{
-    frontend *fe = (frontend *)handle;    
-    if (bl->handle == -1)
-	bl->handle = _call_java(4,10,bl->w, bl->h);
-    bl->x = x;
-    bl->y = y;
-    _call_java(8, bl->handle, x + fe->ox, y + fe->oy);
-}
-
-void canvas_blitter_load(void *handle, blitter *bl, int x, int y)
-{
-    frontend *fe = (frontend *)handle;
-    assert(bl->handle != -1);
-    if (x == BLITTER_FROMSAVED && y == BLITTER_FROMSAVED) {
-        x = bl->x;
-        y = bl->y;
-    }
-    _call_java(9, bl->handle, x + fe->ox, y + fe->oy);
-}
-
-void canvas_end_draw(void *handle)
-{
-    _call_java(4,2,0,0);
-}
 
 char *canvas_text_fallback(void *handle, const char *const *strings,
 			     int nstrings)
 {
     /*
-     * We assume Java can cope with any UTF-8 likely to be emitted
+     * We assume JavaScript can cope with any UTF-8 likely to be emitted
      * by a puzzle.
      */
     return dupstr(strings[0]);
@@ -187,7 +106,7 @@ const struct drawing_api canvas_drawing = {
     canvas_draw_line,
     canvas_draw_poly,
     canvas_draw_circle,
-    NULL, // draw_update,
+    canvas_draw_update,
     canvas_clip,
     canvas_unclip,
     canvas_start_draw,
@@ -201,6 +120,14 @@ const struct drawing_api canvas_drawing = {
     NULL, NULL,			       /* line_width, line_dotted */
     canvas_text_fallback,
 };
+
+
+/*
+ * Event Handling
+ * http://www.chiark.greenend.org.uk/~sgtatham/puzzles/devel/midend.html#midend
+ */
+
+#ifdef NOTYET
 
 int jcallback_key_event(int x, int y, int keyval)
 {
@@ -241,22 +168,6 @@ int jcallback_timer_func()
 	fe->last_time = now;
     }
     return fe->timer_active;
-}
-
-void deactivate_timer(frontend *fe)
-{
-    if (fe->timer_active)
-	_call_java(4, 13, 0, 0);
-    fe->timer_active = FALSE;
-}
-
-void activate_timer(frontend *fe)
-{
-    if (!fe->timer_active) {
-	_call_java(4, 12, 0, 0);
-	gettimeofday(&fe->last_time, NULL);
-    }
-    fe->timer_active = TRUE;
 }
 
 void jcallback_config_ok()
@@ -316,15 +227,23 @@ int jcallback_menu_key_event(int key)
     return 0;
 }
 
+#endif /* NOTYET */
+
+extern void js_resize_fe(int x, int y);
+
 static void resize_fe(frontend *fe)
 {
+    // TODO: move this entire thing to JS
     int x, y;
+    midend *me = frontend_get_midend(fe);
 
     x = INT_MAX;
     y = INT_MAX;
-    midend_size(fe->me, &x, &y, FALSE);
-    _call_java(3, x, y, 0);
+    midend_size(me, &x, &y, FALSE);
+    js_resize_fe(x, y);
 }
+
+#ifdef NOTYET
 
 int jcallback_preset_event(int ptr_game_params)
 {
@@ -385,53 +304,71 @@ int jcallback_about_event()
     return 0;
 }
 
+#endif /* NOTYET */
+
+
+/*
+ * Main
+ */
+
+extern void js_add_preset(char *name, game_params *params);
+extern void js_mark_current_preset(int index);
+extern void js_init_game(const char *name, int can_configure, int wants_statusbar, int can_solve);
+
+void one_iter() {
+  // process input
+  // render to screen
+}
+
 int main(int argc, char **argv)
 {
     int i, n;
     float* colours;
+    void* dhandle;
+    midend* me;
 
-    _fe = snew(frontend);
-    _fe->timer_active = FALSE;
-    _fe->me = midend_new(_fe, &thegame, &canvas_drawing, _fe);
+    _fe = frontend_new();
+
+    dhandle = canvas_new();
+
+    me = midend_new(_fe, &thegame, &canvas_drawing, dhandle);
+    frontend_set_midend(_fe, me);
+
     if (argc > 1)
-	    midend_game_id(_fe->me, argv[1]);   /* ignore failure */
-    midend_new_game(_fe->me);
+	    midend_game_id(me, argv[1]);   /* ignore failure */
+    midend_new_game(me);
 
-    if ((n = midend_num_presets(_fe->me)) > 0) {
-        int i;
+    if ((n = midend_num_presets(me)) > 0) {
         for (i = 0; i < n; i++) {
             char *name;
             game_params *params;
-            midend_fetch_preset(_fe->me, i, &name, &params);
-	        _call_java(1, (int)name, (int)params, 0);
+            midend_fetch_preset(me, i, &name, &params);
+	        js_add_preset(name, params);
         }
     }
 
-    colours = midend_colours(_fe->me, &n);
-    _fe->ox = -1;
-
-    _call_java(0, (int)thegame.name,
-	       (thegame.can_configure ? 1 : 0) |
-	       (midend_wants_statusbar(_fe->me) ? 2 : 0) |
-	       (thegame.can_solve ? 4 : 0), n);    
+    colours = midend_colours(me, &n);
     for (i = 0; i < n; i++) {
-	    _call_java(1024+ i,
+	    canvas_set_palette_entry(dhandle, i,
 		   (int)(colours[i*3] * 0xFF),
 		   (int)(colours[i*3+1] * 0xFF),
 		   (int)(colours[i*3+2] * 0xFF));
     }
+
+    js_init_game(thegame.name, thegame.can_configure,
+	       midend_wants_statusbar(me),
+	       thegame.can_solve);
+
     resize_fe(_fe);
 
-    _call_java(13, midend_which_preset(_fe->me), 0, 0);
+    js_mark_current_preset(midend_which_preset(me));
 
-    // Now pause the vm. The VM will be call()ed when
-    // an input event occurs.
-    _pause();
+    midend_force_redraw(me);
+    emscripten_set_main_loop(one_iter, /*fps=*/0, /*infinite=*/TRUE);
 
+    // TODO: unreachable... (because infinite=TRUE in main loop)
     // shut down when the VM is resumed.
     deactivate_timer(_fe);
-    midend_free(_fe->me);
+    midend_free(me);
     return 0;
 }
-
-#endif
