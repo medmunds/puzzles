@@ -1613,22 +1613,29 @@ if (defined $makefiles{'emcc'}) {
 	       (join " ", map {"-I$dirpfx$_"} @srcdirs) .
 	       " \$(CFLAGS)")."\n".
 	#"LDFLAGS := -O2 -s ASM_JS=1\n". # TODO: ASM_JS is confused about libc - missing _memcpy def
-	"LDFLAGS := -O2\n".
+	"LDFLAGS := -O2 -s EXPORTED_FUNCTIONS=\"['_init_game']\"\n".
     "BUILDDIR=./build\n".
     "FELIB=../frontend.js\n".
+    "HTMLTMPL=../game.html\n".
     "\n";
-    print &splitline("all: " . join " ", map { "\$(BUILDDIR)/$_.html" } &progrealnames("X"));
+    print &splitline("all: " . join " ", &progrealnames("X"));
+    print "\n\n";
+    print &splitline(".PHONY: " . join " ", &progrealnames("X"));
     print "\n\n";
     foreach $p (&prognames("X")) {
       ($prog, $type) = split ",", $p;
+      print "$prog: \$(BUILDDIR)/$prog.js \$(BUILDDIR)/$prog.html\n";
+
       $objstr = &objects($p, "X.o", undef, undef);
       $objstr =~ s/gtk\.o/emscripten\.o/g;
-      print &splitline("\$(BUILDDIR)/" . $prog . ".html: " . $objstr
+      print &splitline("\$(BUILDDIR)/" . $prog . ".js: " . $objstr
         . " \$(FELIB) | \$(BUILDDIR) "), "\n";
       $libstr = &objects($p, undef, undef, "-lX") .
         "--js-library \$(FELIB)";
       print &splitline("\t\$(CC) \$(LDFLAGS) \$(${type}LDFLAGS) -o \$@ " .
                        $objstr . " $libstr -lm", 69), "\n\n";
+      print "\$(BUILDDIR)/" . $prog . ".html: \$(HTMLTMPL) | \$(BUILDDIR)\n";
+      print "\tsed -e's/GAME.js/" . $prog . ".js/g' \$(HTMLTMPL) > \$@\n\n";
     }
     foreach $d (&deps("X.o", undef, $dirpfx, "/")) {
       $oobjs = $d->{obj};
@@ -1647,7 +1654,7 @@ if (defined $makefiles{'emcc'}) {
     print $makefile_extra{'emcc'} || "";
     print "\nclean:\n";
     print &splitline("\trm -f *.o " .
-      (join " ", map { "\$(BUILDDIR)/$_.html" } &progrealnames("X")), 69)
+      (join " ", map { "\$(BUILDDIR)/$_.{js,html}" } &progrealnames("X")), 69)
       . "\n";
     select STDOUT; close OUT;
 }

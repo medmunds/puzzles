@@ -1,0 +1,26 @@
+<!doctype html>
+<!-- Template html file -->
+<html>
+<head>
+  <title>Game loading</title>
+</head>
+<body>
+  <h1>Loading...</h1>
+  <canvas id="canvas" style="background-color: #cccccc;"></canvas>
+
+  <script>
+//    Module = {};
+//    Module['noInitialRun'] = true;
+//    Module['noExitRuntime'] = true;
+  </script>
+  <script src="drawing.js"></script>
+  <script src="GAME.js"></script><!-- This gets replaced with specific game.js -->
+  <script>
+    window.onload = function(e) {
+      console.log("Window loaded");
+      var init_game = Module.cwrap('init_game', 'number', ['string']);
+      init_game();
+    };
+  </script>
+</body>
+</html>

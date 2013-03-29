@@ -19,7 +19,7 @@
 
 
 /* The global frontend: a JavaScript object (opaque to us) */
-static frontend *_fe;
+//static frontend *_fe;
 
 extern frontend *frontend_new(void);
 extern void frontend_set_midend(frontend *fe, midend *me);
@@ -77,6 +77,8 @@ extern void canvas_draw_text(void *handle, int x, int y, int fonttype, int fonts
 		   int align, int colour, char *text);
 extern void canvas_draw_rect(void *handle, int x, int y, int w, int h, int colour);
 extern void canvas_draw_line(void *handle, int x1, int y1, int x2, int y2, int colour);
+extern void canvas_draw_thick_line(void *handle, float thickness,
+                     float x1, float y1, float x2, float y2, int colour);
 extern void canvas_draw_poly(void *handle, int *coords, int npoints,
 			int fillcolour, int outlinecolour);
 extern void canvas_draw_circle(void *handle, int cx, int cy, int radius,
@@ -119,6 +121,7 @@ const struct drawing_api canvas_drawing = {
     NULL, NULL, NULL, NULL, NULL, NULL, /* {begin,end}_{doc,page,puzzle} */
     NULL, NULL,			       /* line_width, line_dotted */
     canvas_text_fallback,
+    canvas_draw_thick_line,
 };
 
 
@@ -320,22 +323,23 @@ void one_iter() {
   // render to screen
 }
 
-int main(int argc, char **argv)
+int init_game(char *game_id)
 {
     int i, n;
     float* colours;
     void* dhandle;
+    frontend* fe;
     midend* me;
 
-    _fe = frontend_new();
+    fe = frontend_new();
 
     dhandle = canvas_new();
 
-    me = midend_new(_fe, &thegame, &canvas_drawing, dhandle);
-    frontend_set_midend(_fe, me);
+    me = midend_new(fe, &thegame, &canvas_drawing, dhandle);
+    frontend_set_midend(fe, me);
 
-    if (argc > 1)
-	    midend_game_id(me, argv[1]);   /* ignore failure */
+    if (game_id)
+	    midend_game_id(me, game_id);   /* ignore failure */
     midend_new_game(me);
 
     if ((n = midend_num_presets(me)) > 0) {
@@ -359,16 +363,16 @@ int main(int argc, char **argv)
 	       midend_wants_statusbar(me),
 	       thegame.can_solve);
 
-    resize_fe(_fe);
+    resize_fe(fe);
 
     js_mark_current_preset(midend_which_preset(me));
 
     midend_force_redraw(me);
-    emscripten_set_main_loop(one_iter, /*fps=*/0, /*infinite=*/TRUE);
-
-    // TODO: unreachable... (because infinite=TRUE in main loop)
-    // shut down when the VM is resumed.
-    deactivate_timer(_fe);
-    midend_free(me);
+//    emscripten_set_main_loop(one_iter, /*fps=*/0, /*infinite=*/TRUE);
+//
+//    // TODO: unreachable... (because infinite=TRUE in main loop)
+//    // shut down when the VM is resumed.
+//    deactivate_timer(fe);
+//    midend_free(me);
     return 0;
 }
