@@ -2,25 +2,83 @@
 <!-- Template html file -->
 <html>
 <head>
-  <title>Game loading</title>
+    <title>Game loading</title>
 </head>
 <body>
-  <h1>Loading...</h1>
-  <canvas id="canvas" style="background-color: #cccccc;"></canvas>
+<h1>Loading...</h1>
+<canvas id="canvas" style="background-color: #cccccc; cursor: default;"></canvas>
 
-  <script>
-//    Module = {};
-//    Module['noInitialRun'] = true;
-//    Module['noExitRuntime'] = true;
-  </script>
-  <script src="drawing.js"></script>
-  <script src="GAME.js"></script><!-- This gets replaced with specific game.js -->
-  <script>
+<script>
+    //    Module = {};
+    //    Module['noInitialRun'] = true;
+    //    Module['noExitRuntime'] = true;
+</script>
+<script src="drawing.js"></script>
+<script src="GAME.js"></script><!-- This gets replaced with specific game.js -->
+<script>
     window.onload = function(e) {
-      console.log("Window loaded");
-      var init_game = Module.cwrap('init_game', 'number', ['string']);
-      init_game();
+        console.log("Window loaded");
+        var init_game = Module.cwrap('init_game', 'number', ['string']);
+        init_game();
+
+        // from puzzles.h:
+        var LEFT_BUTTON    = 0x0200,
+            MIDDLE_BUTTON  = 0x0201,
+            RIGHT_BUTTON   = 0x0202,
+            LEFT_DRAG      = 0x0203,
+            MIDDLE_DRAG    = 0x0204,
+            RIGHT_DRAG     = 0x0205,
+            LEFT_RELEASE   = 0x0206,
+            MIDDLE_RELEASE = 0x0207,
+            RIGHT_RELEASE  = 0x0208,
+            CURSOR_UP      = 0x0209,
+            CURSOR_DOWN    = 0x020A,
+            CURSOR_LEFT    = 0x020B,
+            CURSOR_RIGHT   = 0x020C,
+            CURSOR_SELECT  = 0x020D,
+            CURSOR_SELECT2 = 0x020E,
+
+            /* made smaller because of 'limited range of datatype' errors. */
+            MOD_CTRL       = 0x1000,
+            MOD_SHFT       = 0x2000,
+            MOD_NUM_KEYPAD = 0x4000,
+            MOD_MASK       = 0x7000 /* mask for all modifiers */
+
+
+        var handle_input = Module.cwrap('handle_input', 'number', ['number', 'number', 'number']);
+        var canvas = document.getElementById('canvas');
+
+        function mouseParams(evt, offset) {
+            var params = {};
+            params.x = evt.offsetX; // TODO: non-portable
+            params.y = evt.offsetY;
+            params.button = evt.button + LEFT_BUTTON + offset; // evt.button = 0,1,2 left,mid,right
+            if (evt.ctrlKey)
+                params.button |= MOD_CTRL;
+            if (evt.shiftKey)
+                params.button |= MOD_SHFT;
+            return params;
+        }
+
+        canvas.onmousedown = function(evt) {
+            var params = mouseParams(evt, LEFT_BUTTON - LEFT_BUTTON);
+            console.log(params);
+            handle_input(params.x, params.y, params.button);
+        };
+        canvas.onmousemove = function(evt) {
+            var params = mouseParams(evt, LEFT_DRAG - LEFT_BUTTON);
+            handle_input(params.x, params.y, params.button);
+        };
+        canvas.onmouseup = function(evt) {
+            var params = mouseParams(evt, LEFT_RELEASE - LEFT_BUTTON);
+            console.log(params);
+            handle_input(params.x, params.y, params.button);
+        };
+        canvas.oncontextmenu = function(evt) {
+            evt.preventDefault();
+            return false;
+        }
     };
-  </script>
+</script>
 </body>
 </html>

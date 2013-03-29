@@ -130,18 +130,17 @@ const struct drawing_api canvas_drawing = {
  * http://www.chiark.greenend.org.uk/~sgtatham/puzzles/devel/midend.html#midend
  */
 
-#ifdef NOTYET
-
-int jcallback_key_event(int x, int y, int keyval)
+int handle_input(int x, int y, int button)
 {
-    frontend *fe = (frontend *)_fe;
-    if (fe->ox == -1)
-        return 1;
-    if (keyval >= 0 &&
-        !midend_process_key(fe->me, x - fe->ox, y - fe->oy, keyval))
-	return 42;
-    return 1;
+    int retval = 1;
+    midend *me = frontend_get_midend((frontend *)42);
+    if (me) {
+        retval = midend_process_key(me, x, y, button);
+    }
+    return retval;
 }
+
+#ifdef NOTYET
 
 int jcallback_resize(int width, int height)
 {

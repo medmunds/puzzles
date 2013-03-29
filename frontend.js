@@ -18,12 +18,12 @@
         },
         frontend_set_midend: function(fe, me) {
             fe = globalScope.fe;
-            console.log('frontend_set_midend', me);
+            //console.log('frontend_set_midend', me);
             fe.midend = me;
         },
         frontend_get_midend: function(fe) {
             fe = globalScope.fe;
-            console.log('frontend_get_midend');
+            //console.log('frontend_get_midend');
             return fe.midend;
         },
 
@@ -83,7 +83,7 @@
             dr = globalScope.dr;
             text = Pointer_stringify(text);
             // from puzzles.h:
-            var ALIGN_VNORMAL = 0x000,
+            var ALIGN_VNORMAL = 0x000, // bottom or alphabetic baseline?
                 ALIGN_VCENTRE = 0x100,
                 ALIGN_HLEFT   = 0x000,
                 ALIGN_HCENTRE = 0x001,
@@ -92,7 +92,7 @@
                 FONT_VARIABLE = 1;
             console.log('canvas_draw_text', x, y, fonttype, fontsize, align, colour, text);
 
-            var valign = (align & ALIGN_VCENTRE) == ALIGN_VCENTRE ? "middle" : "top",
+            var valign = (align & ALIGN_VCENTRE) == ALIGN_VCENTRE ? "middle" : "alphabetic",
                 halign = (align & ALIGN_HCENTRE) == ALIGN_HCENTRE ? "center" : (
                     (align & ALIGN_HRIGHT) == ALIGN_HRIGHT ? "right" : "left"
                     ),
@@ -107,12 +107,12 @@
         canvas_draw_line: function(dr, x1, y1, x2, y2, colour) {
             dr = globalScope.dr;
             console.log('canvas_draw_line', x1, y1, x2, y2, colour);
-            dr.draw_line(x1, y1, x2, y2, 1, colour);
+            dr.draw_line(x1, y1, x2, y2, colour);
         },
         canvas_draw_thick_line: function(dr, thickness, x1, y1, x2, y2, colour) {
             dr = globalScope.dr;
             console.log('canvas_draw_thick_line', thickness, x1, y1, x2, y2, colour);
-            dr.draw_line(x1, y1, x2, y2, thickness, colour);
+            dr.draw_line(x1, y1, x2, y2, colour, thickness);
         },
         canvas_draw_poly: function(dr, /* int* */_coords, npoints, fillcolour, outlinecolour) {
             dr = globalScope.dr;
@@ -141,25 +141,28 @@
         canvas_blitter_new: function(dr, w, h) {
             dr = globalScope.dr;
             console.log('canvas_blitter_new', w, h);
-            return {obj: "blitter", width: w, height: h};
+            return dr.blitter_new(w, h);
         },
         canvas_blitter_free: function(dr, bl) {
             dr = globalScope.dr;
             console.log('canvas_blitter_free', bl);
+            dr.blitter_free(bl);
         },
         canvas_blitter_save: function(dr, bl, x, y) {
             dr = globalScope.dr;
             console.log('canvas_blitter_save', bl, x, y);
+            dr.blitter_save(bl, x, y);
         },
         canvas_blitter_load: function(dr, bl, x, y) {
             dr = globalScope.dr;
             // from puzzles.h:
             var BLITTER_FROMSAVED = (-1);
             if (x == BLITTER_FROMSAVED && y == BLITTER_FROMSAVED) {
-                x = bl.x;
-                y = bl.y;
+                x = undefined;
+                y = undefined;
             }
             console.log('canvas_blitter_load', bl, x, y);
+            dr.blitter_load(bl, x, y);
         },
         canvas_end_draw: function(dr) {
             dr = globalScope.dr;
