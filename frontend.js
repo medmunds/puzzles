@@ -47,14 +47,37 @@
     keymap[VK_DOWN] = CURSOR_DOWN;
     keymap[VK_LEFT] = CURSOR_LEFT;
     keymap[VK_RIGHT] = CURSOR_RIGHT;
-    keymap[VK_SPACE] = CURSOR_SELECT;
-    keymap[VK_RETURN] = CURSOR_SELECT;
-    keymap[VK_BACK_SPACE] = CURSOR_SELECT2;
-    keymap[VK_DELETE] = CURSOR_SELECT2;
+    keymap[VK_BACK_SPACE] = 0x7F;
+    keymap[VK_DELETE] = 0x7F;
 
 
     // C Imports (can't init until game loaded)
-    var handle_input, midend_timer;
+    var midend_new_game,
+        midend_restart_game,
+        midend_process_key,
+        midend_timer,
+        midend_wants_statusbar,
+        midend_solve,
+        midend_status,
+        midend_can_undo,
+        midend_can_redo;
+
+    function initCImports() {
+        if (midend_new_game) {
+            return;
+        }
+
+        midend_new_game = Module.cwrap('midend_new_game', 'void', ['number']);
+        midend_restart_game = Module.cwrap('midend_restart_game', 'void', ['number']);
+        midend_process_key = Module.cwrap('midend_process_key',
+            'number', ['number', 'number', 'number', 'number']);
+        midend_timer = Module.cwrap('midend_timer', 'void', ['number', 'number']);
+        midend_wants_statusbar = Module.cwrap('midend_wants_statusbar', 'number', ['number']);
+        midend_solve = Module.cwrap('midend_solve', 'string', ['number']);
+        midend_status = Module.cwrap('midend_status', 'number', ['number']);
+        midend_can_undo = Module.cwrap('midend_can_undo', 'number', ['number']);
+        midend_can_redo = Module.cwrap('midend_can_redo', 'number', ['number']);
+    }
 
 
     function Frontend(canvas_id, status_id) {
@@ -68,13 +91,11 @@
 
         this.chandle = CHandle(this);
 
+        initCImports();
+
         this.canvas = document.getElementById(canvas_id);
         this.status = document.getElementById(status_id);
         this._initEvents();
-
-        handle_input = Module.cwrap('handle_input',
-            'number', ['number', 'number', 'number', 'number']);
-        midend_timer = Module.cwrap('midend_timer', 'void', ['number', 'number']);
     }
 
     Frontend.prototype = {
@@ -126,23 +147,28 @@
                 button |= MOD_CTRL;
             if (evt.shiftKey)
                 button |= MOD_SHFT;
-            handle_input(this.chandle, x, y, button);
+            midend_process_key(this.midend, x, y, button);
         },
 
         _keyEvent: function(evt) {
-            if (evt.ctrlKey || evt.metaKey) {
-                return undefined;
+            var button, retval;
+
+            if (evt.type == "keypress") {
+                // Most characters, including Ctrl characters
+                button = (evt.char && evt.char.charCodeAt(0)) || evt.charCode; // TODO: non-portable
+            } else if (evt.type == "keydown") {
+                // Arrows and other non-ASCII keys
+                var key = evt.key || evt.keyCode || evt.which; // TODO: non-portable
+                button = keymap[key];
             }
 
-            var key = evt.key || evt.keyCode || evt.which, // TODO: non-portable
-                button = keymap[key] || key;
-            if (evt.ctrlKey)
-                button |= MOD_CTRL;
-            if (evt.shiftKey)
-                button |= MOD_SHFT;
-            handle_input(this.chandle, 0, 0, button);
-            evt.preventDefault();
-            return false;
+            console.log("Key: " + button);
+            if (button) {
+                midend_process_key(this.midend, -1, -1, button);
+                evt.preventDefault();
+                retval = false;
+            }
+            return retval;
         },
 
         _initEvents: function() {
@@ -166,6 +192,7 @@
             };
 
             window.onkeydown = this._keyEvent.bind(this);
+            window.onkeypress = this._keyEvent.bind(this);
         }
     };
 

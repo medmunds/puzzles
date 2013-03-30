@@ -126,16 +126,6 @@ const struct drawing_api canvas_drawing = {
  * http://www.chiark.greenend.org.uk/~sgtatham/puzzles/devel/midend.html#midend
  */
 
-int handle_input(frontend *fe, int x, int y, int button)
-{
-    int retval = 1;
-    midend *me = frontend_get_midend(fe);
-    if (me) {
-        retval = midend_process_key(me, x, y, button);
-    }
-    return retval;
-}
-
 #ifdef NOTYET
 
 int jcallback_resize(int width, int height)

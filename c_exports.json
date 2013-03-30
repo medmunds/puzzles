@@ -1,5 +1,12 @@
 [
     "_init_game",
-    "_handle_input",
-    "_midend_timer"
+    "_midend_new_game",
+    "_midend_restart_game",
+    "_midend_process_key",
+    "_midend_timer",
+    "_midend_wants_statusbar",
+    "_midend_solve",
+    "_midend_status",
+    "_midend_can_undo",
+    "_midend_can_redo"
 ]
