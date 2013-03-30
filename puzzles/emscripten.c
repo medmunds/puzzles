@@ -18,13 +18,9 @@
 #include "puzzles.h"
 
 
-/* The global frontend: a JavaScript object (opaque to us) */
-//static frontend *_fe;
-
-extern frontend *frontend_new(void);
 extern void frontend_set_midend(frontend *fe, midend *me);
 extern midend *frontend_get_midend(frontend *fe);
-
+extern void *frontend_get_drawing(frontend *fe);
 
 /*
  * Mid-end to front-end calls
@@ -66,8 +62,8 @@ void frontend_default_colour(frontend *fe, float *output)
  * http://www.chiark.greenend.org.uk/~sgtatham/puzzles/devel/drawing.html#drawing-frontend
  */
 
-extern void *canvas_new(void);
 extern void canvas_set_palette_entry(void *handle, int index, int r, int g, int b);
+extern void canvas_resize(void *handle, int w, int h);
 
 extern void canvas_status_bar(void *handle, char *text);
 extern void canvas_start_draw(void *handle);
@@ -130,10 +126,10 @@ const struct drawing_api canvas_drawing = {
  * http://www.chiark.greenend.org.uk/~sgtatham/puzzles/devel/midend.html#midend
  */
 
-int handle_input(int x, int y, int button)
+int handle_input(frontend *fe, int x, int y, int button)
 {
     int retval = 1;
-    midend *me = frontend_get_midend((frontend *)42);
+    midend *me = frontend_get_midend(fe);
     if (me) {
         retval = midend_process_key(me, x, y, button);
     }
@@ -231,18 +227,18 @@ int jcallback_menu_key_event(int key)
 
 #endif /* NOTYET */
 
-extern void js_resize_fe(int x, int y);
-
 static void resize_fe(frontend *fe)
 {
     // TODO: move this entire thing to JS
-    int x, y;
+    int w, h;
     midend *me = frontend_get_midend(fe);
+    void *dhandle = frontend_get_drawing(fe);
 
-    x = INT_MAX;
-    y = INT_MAX;
-    midend_size(me, &x, &y, FALSE);
-    js_resize_fe(x, y);
+    w = INT_MAX;
+    h = INT_MAX;
+    midend_size(me, &w, &h, FALSE);
+    canvas_resize(dhandle, w, h);
+    midend_force_redraw(me);
 }
 
 #ifdef NOTYET
@@ -317,22 +313,14 @@ extern void js_add_preset(char *name, game_params *params);
 extern void js_mark_current_preset(int index);
 extern void js_init_game(const char *name, int can_configure, int wants_statusbar, int can_solve);
 
-void one_iter() {
-  // process input
-  // render to screen
-}
-
-int init_game(char *game_id)
+int init_game(frontend *fe, char *game_id)
 {
     int i, n;
     float* colours;
     void* dhandle;
-    frontend* fe;
     midend* me;
 
-    fe = frontend_new();
-
-    dhandle = canvas_new();
+    dhandle = frontend_get_drawing(fe);
 
     me = midend_new(fe, &thegame, &canvas_drawing, dhandle);
     frontend_set_midend(fe, me);
@@ -341,6 +329,7 @@ int init_game(char *game_id)
 	    midend_game_id(me, game_id);   /* ignore failure */
     midend_new_game(me);
 
+    /*
     if ((n = midend_num_presets(me)) > 0) {
         for (i = 0; i < n; i++) {
             char *name;
@@ -349,6 +338,8 @@ int init_game(char *game_id)
 	        js_add_preset(name, params);
         }
     }
+    js_mark_current_preset(midend_which_preset(me));
+    */
 
     colours = midend_colours(me, &n);
     for (i = 0; i < n; i++) {
@@ -358,20 +349,14 @@ int init_game(char *game_id)
 		   (int)(colours[i*3+2] * 0xFF));
     }
 
+    /*
     js_init_game(thegame.name, thegame.can_configure,
 	       midend_wants_statusbar(me),
 	       thegame.can_solve);
+    */
 
     resize_fe(fe);
 
-    js_mark_current_preset(midend_which_preset(me));
 
-    midend_force_redraw(me);
-//    emscripten_set_main_loop(one_iter, /*fps=*/0, /*infinite=*/TRUE);
-//
-//    // TODO: unreachable... (because infinite=TRUE in main loop)
-//    // shut down when the VM is resumed.
-//    deactivate_timer(fe);
-//    midend_free(me);
     return 0;
 }

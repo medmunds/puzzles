@@ -1,139 +1,194 @@
-function Drawing() {
+(function() {
     "use strict";
 
-    var obj = { 'type': "Drawing" };
-    var qx = 0.5, qy = 0.5; // adjust lines onto pixels
-    var defaultLineWidth = 1;
+    // from puzzles.h:
+    var ALIGN_VNORMAL = 0x000, // alphabetic baseline
+        ALIGN_VCENTRE = 0x100,
+        ALIGN_HLEFT   = 0x000,
+        ALIGN_HCENTRE = 0x001,
+        ALIGN_HRIGHT  = 0x002;
+    var FONT_FIXED    = 0,
+        FONT_VARIABLE = 1;
+    var BLITTER_FROMSAVED = (-1);
 
-    var canvas = document.getElementById("canvas"),
-        context = canvas.getContext("2d"),
-        palette = [];
+    function hex(i) {
+        return ("0" + i.toString(16)).slice(-2);
+    }
+    function rgb2hex(r, g, b) {
+        return '#' + hex(r) + hex(g) + hex(b);
+    }
 
-    function set_palette_entry(index, r, g, b) {
-        function hex(i) {
-            return ("0" + i.toString(16)).slice(-2);
+    function Drawing(canvas) {
+        if (!(this instanceof Drawing)) {
+            return new Drawing(canvas);
         }
-        palette[index] = '#' + hex(r) + hex(g) + hex(b);
+
+        this.canvas = canvas;
+        this.context = this.canvas.getContext("2d");
+        this.palette = [];
+
+        this.qx = this.qy = 0.5; // adjust lines onto pixels
+        this.defaultLineWidth = 1;
     }
 
-    function resize(w, h) {
-        canvas.width = w + 2*qx;
-        canvas.height = h + 2*qy;
-    }
+    Drawing.prototype = {
+        set_palette_entry: function(index, r, g, b) {
+            this.palette[index] = rgb2hex(r, g, b);
+        },
+        status_bar: function(text) {
+            window.status = text;
+        },
 
-    function clip(x, y, w, h) {
-        context.save();
-        context.beginPath();
-        context.rect(x, y, w+2*qx, h+2*qy);
-        context.clip();
-    }
+        resize: function(w, h) {
+            this.canvas.width = w + 2*this.qx;
+            this.canvas.height = h + 2*this.qy;
+        },
 
-    function unclip() {
-        context.restore();
-    }
+        start_draw: function() {
+        },
+        draw_update: function(x, y, w, h) {
+        },
+        end_draw: function() {
+        },
 
-    function fillAndStrokeIt(fillclr, strokeclr, linewidth) {
-        if (linewidth === undefined) {
-            linewidth = defaultLineWidth;
-        }
-        context.strokeStyle = palette[strokeclr];
-        context.lineWidth = linewidth;
-        if (fillclr >= 0) {
-            context.fillStyle = palette[fillclr];
-            context.fill();
-        }
-        context.stroke();
-    }
+        clip: function(x, y, w, h) {
+            this.context.save();
+            this.context.beginPath();
+            this.context.rect(x, y, w+2*this.qx, h+2*this.qy);
+            this.context.clip();
+        },
+        unclip: function() {
+            this.context.restore();
+        },
 
-    function draw_text(x, y, proportional, fontsize, valign, halign, clr, text) {
-        var fontfamily = proportional ? "Arial" : "fixed";
-        context.font = "bold " + fontsize + "px " + fontfamily;
-        context.textBaseline = valign;
-        context.textAlign = halign;
-        context.fillStyle = palette[clr];
-        context.fillText(text, x+qx, y+qy);
-    }
+        draw_text: function(x, y, fonttype, fontsize, align, colour, text) {
+            var valign = (align & ALIGN_VCENTRE) == ALIGN_VCENTRE ? "middle" : "alphabetic",
+                halign = (align & ALIGN_HCENTRE) == ALIGN_HCENTRE ? "center"
+                    : ((align & ALIGN_HRIGHT) == ALIGN_HRIGHT ? "right" : "left"),
+                fontfamily = (fonttype == FONT_VARIABLE) ? "Arial" : "fixed";
+            this.context.font = "bold " + fontsize + "px " + fontfamily;
+            this.context.textBaseline = valign;
+            this.context.textAlign = halign;
+            this.context.fillStyle = this.palette[colour];
+            this.context.fillText(text, x+this.qx, y+this.qy);
+        },
+        draw_rect: function(x, y, w, h, colour) {
+            this.context.lineWidth = 0;
+            this.context.fillStyle = this.palette[colour];
+            this.context.fillRect(x+this.qx, y+this.qy, w, h);
+        },
+        draw_line: function(x1, y1, x2, y2, colour) {
+            this.draw_thick_line(this.defaultLineWidth, x1, y1, x2, y2, colour);
+        },
+        draw_thick_line: function(thickness, x1, y1, x2, y2, colour) {
+            this.context.beginPath();
+            this.context.moveTo(x1+this.qx, y1+this.qy);
+            this.context.lineTo(x2+this.qx, y2+this.qy);
+            this._fillAndStroke(-1, colour, thickness);
+        },
+        draw_poly: function(/* int* */coords, npoints, fillcolour, outlinecolour) {
+            coords = Module.c_to_js_array(coords, npoints*2, 'i32');
+            this.context.beginPath();
+            var i = 0,
+                x = coords[i++],
+                y = coords[i++];
+            this.context.moveTo(x+this.qx, y+this.qy);
+            while (i < coords.length) {
+                x = coords[i++];
+                y = coords[i++];
+                this.context.lineTo(x+this.qx, y+this.qy);
 
-    function draw_rect(x, y, w, h, strokeclr) {
-        context.fillStyle = palette[strokeclr];
-        context.fillRect(x+qx, y+qy, w, h);
-    }
+            }
+            this._fillAndStroke(fillcolour, outlinecolour);
+        },
+        draw_circle: function(cx, cy, radius, fillcolour, outlinecolour) {
+            this.context.beginPath();
+            this.context.arc(cx+this.qx, cy+this.qy, radius, 0, Math.PI * 2, false);
+            this.context.closePath();
+            this._fillAndStroke(fillcolour, outlinecolour);
+        },
 
-    function draw_line(x1, y1, x2, y2, strokeclr, linewidth) {
-        context.beginPath();
-        context.moveTo(x1+qx, y1+qy);
-        context.lineTo(x2+qx, y2+qy);
-        fillAndStrokeIt(-1, strokeclr, linewidth);
-    }
-
-    function draw_poly(points, fillclr, strokeclr) {
-        context.beginPath();
-        var point = points.pop();
-        context.moveTo(point.x+qx, point.y+qy);
-        while (point = points.pop()) {
-            context.lineTo(point.x+qx, point.y+qy);
-        }
-        fillAndStrokeIt(fillclr, strokeclr);
-    }
-
-    function draw_circle(cx, cy, radius, fillclr, strokeclr) {
-        context.beginPath();
-        context.arc(cx+qx, cy+qy, radius, 0, Math.PI * 2, false);
-        context.closePath();
-        fillAndStrokeIt(fillclr, strokeclr);
-    }
-
-    // Blitter
-    var blitters = {},
-        lastBlitterId = 0;
-
-    function blitter_new(w, h) {
-        var id = ++lastBlitterId;
-        blitters[id] = {w: w, h: h, id: id};
-        return id; // must be a number, so it can be stored in C void* handle (Int32)
-    }
-
-    function blitter_free(id) {
-        delete blitters[id];
-    }
-
-    function blitter_save(id, x, y) {
-        var blitter = blitters[id];
-        if (blitter) {
+        blitter_new: function(w, h) {
+            return {
+                'type': "blitter",
+                drawing: this,
+                w: w,
+                h: h,
+                free: function() {} // gets replaced if wrapped as CHandle
+            };
+        },
+        blitter_free: function(blitter) {
+            blitter.drawing = null;
+            blitter.free();
+        },
+        blitter_save: function(blitter, x, y) {
             blitter.x = x;
             blitter.y = y;
-            blitter.data = context.getImageData(x, y, blitter.w, blitter.h);
-        }
-    }
+            blitter.data = this.context.getImageData(x, y, blitter.w, blitter.h);
+        },
+        blitter_load: function(blitter, x, y) {
+            x = (x == BLITTER_FROMSAVED) ? blitter.x : x;
+            y = (y == BLITTER_FROMSAVED) ? blitter.y : y;
+            this.context.putImageData(blitter.data, x, y);
+        },
 
-    function blitter_load(id, x, y) {
-        var blitter = blitters[id];
-        if (blitter && blitter.data) {
-            if (x === undefined) {
-                x = blitter.x;
+        _fillAndStroke: function(fillcolour, strokecolour, linewidth) {
+            if (linewidth === undefined) {
+                linewidth = this.defaultLineWidth;
             }
-            if (y === undefined) {
-                y = blitter.y;
+            this.context.strokeStyle = this.palette[strokecolour];
+            this.context.lineWidth = linewidth;
+            if (fillcolour >= 0) {
+                this.context.fillStyle = this.palette[fillcolour];
+                this.context.fill();
             }
-            context.putImageData(blitter.data, x, y);
+            this.context.stroke();
         }
-    }
+    };
 
 
-    // Public methods
-    obj.set_palette_entry = set_palette_entry;
-    obj.resize = resize;
-    obj.clip = clip;
-    obj.unclip = unclip;
-    obj.draw_text = draw_text;
-    obj.draw_rect = draw_rect;
-    obj.draw_line = draw_line;
-    obj.draw_poly = draw_poly;
-    obj.draw_circle = draw_circle;
-    obj.blitter_new = blitter_new;
-    obj.blitter_free = blitter_free;
-    obj.blitter_save = blitter_save;
-    obj.blitter_load = blitter_load;
+    Module.export_to_c(Drawing.prototype.set_palette_entry, 'canvas_set_palette_entry',
+        'void', ['handle', 'number', 'number', 'number', 'number']);
+    Module.export_to_c(Drawing.prototype.status_bar, 'canvas_status_bar',
+        'void', ['handle', 'string']);
+    Module.export_to_c(Drawing.prototype.resize, 'canvas_resize',
+        'void', ['handle', 'number', 'number']);
 
-    return obj;
-}
+    Module.export_to_c(Drawing.prototype.start_draw, 'canvas_start_draw',
+        'void', ['handle']);
+    Module.export_to_c(Drawing.prototype.draw_update, 'canvas_draw_update',
+        'void', ['handle', 'number', 'number', 'number', 'number']);
+    Module.export_to_c(Drawing.prototype.end_draw, 'canvas_end_draw',
+        'void', ['handle']);
+
+    Module.export_to_c(Drawing.prototype.clip, 'canvas_clip',
+        'void', ['handle', 'number', 'number', 'number', 'number']);
+    Module.export_to_c(Drawing.prototype.unclip, 'canvas_unclip',
+        'void', ['handle']);
+
+    Module.export_to_c(Drawing.prototype.draw_text, 'canvas_draw_text',
+        'void', ['handle', 'number', 'number', 'number', 'number', 'number', 'number', 'string']);
+    Module.export_to_c(Drawing.prototype.draw_rect, 'canvas_draw_rect',
+        'void', ['handle', 'number', 'number', 'number', 'number', 'number']);
+    Module.export_to_c(Drawing.prototype.draw_line, 'canvas_draw_line',
+        'void', ['handle', 'number', 'number', 'number', 'number', 'number']);
+    Module.export_to_c(Drawing.prototype.draw_thick_line, 'canvas_draw_thick_line',
+        'void', ['handle', 'number', 'number', 'number', 'number', 'number', 'number']);
+    Module.export_to_c(Drawing.prototype.draw_poly, 'canvas_draw_poly',
+        'void', ['handle', /* int* */'number', 'number', 'number', 'number']);
+    Module.export_to_c(Drawing.prototype.draw_circle, 'canvas_draw_circle',
+        'void', ['handle', 'number', 'number', 'number', 'number', 'number']);
+
+    Module.export_to_c(Drawing.prototype.blitter_new, 'canvas_blitter_new',
+        'handle', ['handle', 'number', 'number']);
+    Module.export_to_c(Drawing.prototype.blitter_free, 'canvas_blitter_free',
+        'void', ['handle', 'handle']);
+    Module.export_to_c(Drawing.prototype.blitter_save, 'canvas_blitter_save',
+        'void', ['handle', 'handle', 'number', 'number']);
+    Module.export_to_c(Drawing.prototype.blitter_load, 'canvas_blitter_load',
+        'void', ['handle', 'handle', 'number', 'number']);
+
+    // exports
+    window.Drawing = Drawing;
+
+})();

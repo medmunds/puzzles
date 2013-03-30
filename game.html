@@ -6,20 +6,26 @@
 </head>
 <body>
 <h1>Loading...</h1>
-<canvas id="canvas" style="background-color: #cccccc; cursor: default;"></canvas>
+<canvas id="gameboard" style="background-color: #cccccc; cursor: default;"></canvas>
 
 <script>
-    //    Module = {};
-    //    Module['noInitialRun'] = true;
-    //    Module['noExitRuntime'] = true;
+    Module = {};
+    Module['noInitialRun'] = true;
+    Module['noExitRuntime'] = true;
 </script>
+<script src="cglue.js"></script>
+<script src="frontend.js"></script>
 <script src="drawing.js"></script>
 <script src="GAME.js"></script><!-- This gets replaced with specific game.js -->
 <script>
     window.onload = function(e) {
         console.log("Window loaded");
-        var init_game = Module.cwrap('init_game', 'number', ['string']);
-        init_game();
+
+        var frontend = new Frontend('gameboard'),
+            frontend_handle = CHandle(frontend);
+
+        var init_game = Module.cwrap('init_game', 'number', ['number', 'string']);
+        init_game(frontend_handle);
 
         // from puzzles.h:
         var LEFT_BUTTON    = 0x0200,
@@ -42,17 +48,18 @@
             MOD_CTRL       = 0x1000,
             MOD_SHFT       = 0x2000,
             MOD_NUM_KEYPAD = 0x4000,
-            MOD_MASK       = 0x7000 /* mask for all modifiers */
+            MOD_MASK       = 0x7000; /* mask for all modifiers */
 
 
-        var handle_input = Module.cwrap('handle_input', 'number', ['number', 'number', 'number']);
-        var canvas = document.getElementById('canvas');
+        var handle_input = Module.cwrap('handle_input',
+            'number', ['number', 'number', 'number', 'number']);
+        var canvas = frontend.canvas;
 
-        function mouseParams(evt, offset) {
+        function mouseParams(evt, mouseType) {
             var params = {};
             params.x = evt.offsetX; // TODO: non-portable
             params.y = evt.offsetY;
-            params.button = evt.button + LEFT_BUTTON + offset; // evt.button = 0,1,2 left,mid,right
+            params.button = evt.button + mouseType; // evt.button = 0,1,2 left,mid,right
             if (evt.ctrlKey)
                 params.button |= MOD_CTRL;
             if (evt.shiftKey)
@@ -61,18 +68,21 @@
         }
 
         canvas.onmousedown = function(evt) {
-            var params = mouseParams(evt, LEFT_BUTTON - LEFT_BUTTON);
+            var params = mouseParams(evt, LEFT_BUTTON);
             console.log(params);
-            handle_input(params.x, params.y, params.button);
+            handle_input(frontend_handle, params.x, params.y, params.button);
+            return false;
         };
         canvas.onmousemove = function(evt) {
-            var params = mouseParams(evt, LEFT_DRAG - LEFT_BUTTON);
-            handle_input(params.x, params.y, params.button);
+            var params = mouseParams(evt, LEFT_DRAG);
+            handle_input(frontend_handle, params.x, params.y, params.button);
+            return false;
         };
         canvas.onmouseup = function(evt) {
-            var params = mouseParams(evt, LEFT_RELEASE - LEFT_BUTTON);
+            var params = mouseParams(evt, LEFT_RELEASE);
             console.log(params);
-            handle_input(params.x, params.y, params.button);
+            handle_input(frontend_handle, params.x, params.y, params.button);
+            return false;
         };
         canvas.oncontextmenu = function(evt) {
             evt.preventDefault();

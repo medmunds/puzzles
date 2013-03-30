@@ -1615,7 +1615,6 @@ if (defined $makefiles{'emcc'}) {
 	#"LDFLAGS := -O2 -s ASM_JS=1\n". # TODO: ASM_JS is confused about libc - missing _memcpy def
 	"LDFLAGS := -O2 -s EXPORTED_FUNCTIONS=\"['_init_game', '_handle_input']\"\n".
     "BUILDDIR=./build\n".
-    "FELIB=../frontend.js\n".
     "HTMLTMPL=../game.html\n".
     "\n";
     print &splitline("all: " . join " ", &progrealnames("X"));
@@ -1629,9 +1628,8 @@ if (defined $makefiles{'emcc'}) {
       $objstr = &objects($p, "X.o", undef, undef);
       $objstr =~ s/gtk\.o/emscripten\.o/g;
       print &splitline("\$(BUILDDIR)/" . $prog . ".js: " . $objstr
-        . " \$(FELIB) | \$(BUILDDIR) "), "\n";
-      $libstr = &objects($p, undef, undef, "-lX") .
-        "--js-library \$(FELIB)";
+        . " | \$(BUILDDIR) "), "\n";
+      $libstr = &objects($p, undef, undef, "-lX");
       print &splitline("\t\$(CC) \$(LDFLAGS) \$(${type}LDFLAGS) -o \$@ " .
                        $objstr . " $libstr -lm", 69), "\n\n";
       print "\$(BUILDDIR)/" . $prog . ".html: \$(HTMLTMPL) | \$(BUILDDIR)\n";
