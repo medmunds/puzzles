@@ -57,11 +57,10 @@
     var handle_input, midend_timer;
 
 
-    function Frontend(canvas_id) {
+    function Frontend(canvas_id, status_id) {
         if (!(this instanceof Frontend)) {
-            return new Frontend(canvas_id);
+            return new Frontend(canvas_id, status_id);
         }
-        this.canvas_id = canvas_id;
         this.animationId = false;
         this.lastAnimationTime = 0;
         this.drawing = null;
@@ -69,7 +68,8 @@
 
         this.chandle = CHandle(this);
 
-        this.canvas = document.getElementById(this.canvas_id);
+        this.canvas = document.getElementById(canvas_id);
+        this.status = document.getElementById(status_id);
         this._initEvents();
 
         handle_input = Module.cwrap('handle_input',
@@ -105,14 +105,14 @@
                 seconds = (now - this.lastAnimationTime) / 1000;
             this.lastAnimationTime = now;
             this.animationId = window.requestAnimationFrame(this._animationEvent.bind(this));
-            console.log("timer", seconds);
+            //console.log("timer", seconds);
             midend_timer(this.midend, seconds);
         },
 
         get_drawing: function() {
             if (!this.drawing) {
                 console.log("creating drawing");
-                this.drawing = new Drawing(this.canvas);
+                this.drawing = new Drawing(this.canvas, this.status);
             }
             return this.drawing;
         },

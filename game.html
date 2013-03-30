@@ -3,10 +3,17 @@
 <html>
 <head>
     <title>Game loading</title>
+    <style>
+        #gameboard {
+            background-color: #cccccc;
+            cursor: default;
+        }
+    </style>
 </head>
 <body>
-<h1>Loading...</h1>
-<canvas id="gameboard" style="background-color: #cccccc; cursor: default;"></canvas>
+<h1 id="title">Game</h1>
+<canvas id="gameboard"></canvas>
+<div id="status">Loading&hellip;</div>
 
 <script>
     Module = {};
@@ -21,7 +28,7 @@
     window.onload = function(e) {
         console.log("Window loaded");
 
-        var frontend = new Frontend('gameboard'),
+        var frontend = new Frontend('gameboard', 'status'),
             frontend_handle = CHandle(frontend);
 
         var init_game = Module.cwrap('init_game', 'number', ['number', 'string']);

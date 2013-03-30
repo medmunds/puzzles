@@ -18,14 +18,16 @@
         return '#' + hex(r) + hex(g) + hex(b);
     }
 
-    function Drawing(canvas) {
+    function Drawing(canvas, status) {
         if (!(this instanceof Drawing)) {
-            return new Drawing(canvas);
+            return new Drawing(canvas, status);
         }
 
         this.canvas = canvas;
         this.context = this.canvas.getContext("2d");
         this.palette = [];
+
+        this.status = status;
 
         this.qx = this.qy = 0.5; // adjust lines onto pixels
         this.defaultLineWidth = 1;
@@ -36,7 +38,8 @@
             this.palette[index] = rgb2hex(r, g, b);
         },
         status_bar: function(text) {
-            window.status = text;
+            //console.log("Status: " + text);
+            this.status.innerText = text;
         },
 
         resize: function(w, h) {
