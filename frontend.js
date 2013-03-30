@@ -53,7 +53,8 @@
     keymap[VK_DELETE] = CURSOR_SELECT2;
 
 
-    var handle_input;
+    // C Imports (can't init until game loaded)
+    var handle_input, midend_timer;
 
 
     function Frontend(canvas_id) {
@@ -61,7 +62,8 @@
             return new Frontend(canvas_id);
         }
         this.canvas_id = canvas_id;
-        this.timer_active = false;
+        this.animationId = false;
+        this.lastAnimationTime = 0;
         this.drawing = null;
         this.midend = null;
 
@@ -72,6 +74,7 @@
 
         handle_input = Module.cwrap('handle_input',
             'number', ['number', 'number', 'number', 'number']);
+        midend_timer = Module.cwrap('midend_timer', 'void', ['number', 'number']);
     }
 
     Frontend.prototype = {
@@ -84,16 +87,26 @@
         },
 
         activate_timer: function() {
-            console.log("activate_timer");
-            if (!this.timer_active) {
-                this.timer_active = true;
+            if (!this.animationId) {
+                console.log("activate_timer");
+                this.lastAnimationTime = Date.now();
+                this.animationId = window.requestAnimationFrame(this._animationEvent.bind(this));
             }
         },
         deactivate_timer: function() {
-            console.log("deactivate_timer");
-            if (this.timer_active) {
-                this.timer_active = false;
+            if (this.animationId) {
+                console.log("deactivate_timer");
+                window.cancelAnimationFrame(this.animationId); // TODO: non-portable
+                this.animationId = null;
             }
+        },
+        _animationEvent: function(timestamp) {
+            var now = Date.now(),
+                seconds = (now - this.lastAnimationTime) / 1000;
+            this.lastAnimationTime = now;
+            this.animationId = window.requestAnimationFrame(this._animationEvent.bind(this));
+            console.log("timer", seconds);
+            midend_timer(this.midend, seconds);
         },
 
         get_drawing: function() {

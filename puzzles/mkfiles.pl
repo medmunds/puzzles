@@ -1613,7 +1613,7 @@ if (defined $makefiles{'emcc'}) {
 	       (join " ", map {"-I$dirpfx$_"} @srcdirs) .
 	       " \$(CFLAGS)")."\n".
 	#"LDFLAGS := -O2 -s ASM_JS=1\n". # TODO: ASM_JS is confused about libc - missing _memcpy def
-	"LDFLAGS := -O2 -s EXPORTED_FUNCTIONS=\"['_init_game', '_handle_input']\"\n".
+	"LDFLAGS := -O2 -s EXPORTED_FUNCTIONS=\"['_init_game', '_handle_input', '_midend_timer']\"\n".
     "BUILDDIR=./build\n".
     "HTMLTMPL=../game.html\n".
     "\n";
