@@ -2,6 +2,7 @@
     "_init_game",
     "_midend_new_game",
     "_midend_restart_game",
+    "_midend_redraw",
     "_midend_process_key",
     "_midend_timer",
     "_midend_wants_statusbar",

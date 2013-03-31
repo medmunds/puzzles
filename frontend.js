@@ -54,6 +54,7 @@
     // C Imports (can't init until game loaded)
     var midend_new_game,
         midend_restart_game,
+        midend_redraw,
         midend_process_key,
         midend_timer,
         midend_wants_statusbar,
@@ -69,6 +70,7 @@
 
         midend_new_game = Module.cwrap('midend_new_game', 'void', ['number']);
         midend_restart_game = Module.cwrap('midend_restart_game', 'void', ['number']);
+        midend_redraw = Module.cwrap('midend_redraw', 'void', ['number']);
         midend_process_key = Module.cwrap('midend_process_key',
             'number', ['number', 'number', 'number', 'number']);
         midend_timer = Module.cwrap('midend_timer', 'void', ['number', 'number']);
@@ -102,9 +104,25 @@
         set_midend: function(midend) {
             this.midend = midend;
         },
-
         get_midend: function() {
             return this.midend;
+        },
+
+        newGame: function() {
+            midend_new_game(this.midend);
+            midend_redraw(this.midend);
+        },
+        restartGame: function() {
+            midend_restart_game(this.midend);
+        },
+        solve: function() {
+            midend_solve(this.midend);
+        },
+        undo: function() {
+            midend_process_key(this.midend, -1, -1, 'u'.charCodeAt(0));
+        },
+        redo: function() {
+            midend_process_key(this.midend, -1, -1, 'r'.charCodeAt(0));
         },
 
         activate_timer: function() {
@@ -193,6 +211,12 @@
 
             window.onkeydown = this._keyEvent.bind(this);
             window.onkeypress = this._keyEvent.bind(this);
+
+            document.getElementById("game_new").onclick = this.newGame.bind(this);
+            document.getElementById("game_restart").onclick = this.restartGame.bind(this);
+            document.getElementById("game_solve").onclick = this.solve.bind(this);
+            document.getElementById("undo").onclick = this.undo.bind(this);
+            document.getElementById("redo").onclick = this.redo.bind(this);
         }
     };
 

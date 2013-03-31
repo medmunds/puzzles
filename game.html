@@ -12,8 +12,19 @@
 </head>
 <body>
 <h1 id="title">Game</h1>
-<canvas id="gameboard"></canvas>
+
+<menu type="toolbar">
+    <button id="game_new">New Game</button>
+    <button id="game_save">Save Game</button>
+    <button id="game_load">Load Game</button>
+    <button id="game_restart">Restart Game</button>
+    <button id="game_solve">Show Solution</button>
+    <button id="undo">Undo</button>
+    <button id="redo">Redo</button>
+</menu>
+
 <div id="status">Loading&hellip;</div>
+<canvas id="gameboard"></canvas>
 
 <script>
     Module = {};
