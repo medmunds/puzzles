@@ -1609,11 +1609,13 @@ if (defined $makefiles{'emcc'}) {
     "# You can define this path to point at your tools if you need to\n".
     "# TOOLPATH = /opt/emcc/\n".
     "CC := \$(TOOLPATH)\$(CC)\n".
-    &splitline("CFLAGS := -Wall -Werror -DSLOW_SYSTEM -g " .
+    # -Werror -- Clang catches a lot of warnings, so don't treat them as errors
+    &splitline("CFLAGS := -Wall -g " .
 	       (join " ", map {"-I$dirpfx$_"} @srcdirs) .
 	       " \$(CFLAGS)")."\n".
 	"C_EXPORT_LIST = ../c_exports.json\n".
-	"LDFLAGS := -O2 -s EXPORTED_FUNCTIONS=\"`cat \$(C_EXPORT_LIST)`\"\n".
+	"LDFLAGS := -O2 -s USE_TYPED_ARRAYS=0 -s TOTAL_MEMORY=2097152 -s FAST_MEMORY=2097152 -s TOTAL_STACK=1048576 ".
+	    "-s EXPORTED_FUNCTIONS=\"`cat \$(C_EXPORT_LIST)`\"\n".
     "BUILDDIR=./build\n".
     "HTMLTMPL=../game.html\n".
     "\n";

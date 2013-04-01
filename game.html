@@ -2,7 +2,11 @@
 <!-- Template html file -->
 <html>
 <head>
-    <title>Game loading</title>
+    <meta charset="utf-8" />
+    <title>Game</title>
+    <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.6.2/html5shiv.js"></script>
+    <![endif]-->
     <style>
         #gameboard {
             background-color: #cccccc;
@@ -23,28 +27,49 @@
     <button id="redo">Redo</button>
 </menu>
 
-<div id="status">Loading&hellip;</div>
 <canvas id="gameboard"></canvas>
+<div id="status">Loading&hellip;</div>
 
+<div id="debug" style="white-space: pre-wrap;"></div>
+<script src="debug.js"></script>
+
+<!--[if lt IE 9]>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script src="lib/excanvas.compiled.js"></script>
+<![endif]-->
+<!--[if gte IE 9]><!-->
+<script src="http://code.jquery.com/jquery-2.0.0b2.min.js"></script>
+<!--<![endif]-->
 <script>
     Module = {};
     Module['noInitialRun'] = true;
     Module['noExitRuntime'] = true;
+
+    // Qualify this browser... later use this to load appropriate emcc-generated game.js
+    if (typeof Int32Array === 'undefined') {
+        debug("No typed array support");
+    } else if (typeof Float64Array === 'undefined') {
+        debug("No Float64Array support");
+    }
 </script>
+<script src="lib/jquery.requestAnimationFrame.min.js"></script>
 <script src="cglue.js"></script>
 <script src="frontend.js"></script>
 <script src="drawing.js"></script>
 <script src="GAME.js"></script><!-- This gets replaced with specific game.js -->
 <script>
-    window.onload = function(e) {
-        console.log("Window loaded");
+    jQuery(function($) {
+        debug("Creating Frontend...");
 
-        var frontend = new Frontend('gameboard', 'status'),
-            frontend_handle = CHandle(frontend);
+        var frontend = new Frontend('gameboard', 'status');
+        debug("Frontend created");
+        var frontend_handle = CHandle(frontend);
+        debug("Frontend wrapped:", frontend_handle);
 
         var init_game = Module.cwrap('init_game', 'number', ['number', 'string']);
         init_game(frontend_handle);
-    };
+        debug("Game initialized");
+    });
 </script>
 </body>
 </html>

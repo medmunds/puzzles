@@ -1,0 +1,30 @@
+
+
+Based on...
+
+Simon Tatham's Portable Puzzle Collection
+    http://www.chiark.greenend.org.uk/~sgtatham/puzzles/
+    MIT License
+
+
+Also incorporates (or loads) code from...
+
+Emscripten
+    https://github.com/kripken/emscripten
+    MIT License
+
+jQuery
+    http://jquery.com/
+    MIT License
+
+jQuery-requestAnimationFrame
+    https://github.com/gnarf37/jquery-requestAnimationFrame
+    MIT License
+
+explorercanvas
+    https://code.google.com/p/explorercanvas/
+    Apache License 2.0
+
+html5shiv
+    https://code.google.com/p/html5shiv/
+    MIT License

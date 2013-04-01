@@ -1,4 +1,4 @@
-(function() {
+(function($) {
     "use strict";
 
     // from puzzles.h:
@@ -23,11 +23,11 @@
             return new Drawing(canvas, status);
         }
 
-        this.canvas = canvas;
-        this.context = this.canvas.getContext("2d");
+        this.$canvas = $(canvas);
+        this.context = this.$canvas[0].getContext("2d");
         this.palette = [];
 
-        this.status = status;
+        this.$status = $(status);
 
         this.qx = this.qy = 0.5; // adjust lines onto pixels
         this.defaultLineWidth = 1;
@@ -38,13 +38,13 @@
             this.palette[index] = rgb2hex(r, g, b);
         },
         status_bar: function(text) {
-            //console.log("Status: " + text);
-            this.status.innerText = text;
+            this.$status.text(text);
         },
 
         resize: function(w, h) {
-            this.canvas.width = w + 2*this.qx;
-            this.canvas.height = h + 2*this.qy;
+            var canvas = this.$canvas.get(0);
+            canvas.width = w + 2*this.qx;
+            canvas.height = h + 2*this.qy;
         },
 
         start_draw: function() {
@@ -194,4 +194,4 @@
     // exports
     window.Drawing = Drawing;
 
-})();
+})(jQuery);
