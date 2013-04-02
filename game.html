@@ -12,6 +12,40 @@
             background-color: #cccccc;
             cursor: default;
         }
+
+        .meter {
+            display: inline-block;
+            position: relative;
+            width: 250px;
+            height: 1em;
+            background-color: #eee;
+        }
+        .meter .current, .meter .peak {
+            display: block;
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 1em;
+        }
+        .meter .peak {
+            background-color: #aec;
+        }
+        .meter .current {
+            left: -1px;
+            background-color: transparent;
+            border-right: 2px solid #900;
+        }
+        .meter .maxLabel {
+            position: absolute;
+            right: 0;
+            top: 0;
+        }
+        .meter .peakLabel {
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+
     </style>
 </head>
 <body>
@@ -30,7 +64,17 @@
 <canvas id="gameboard"></canvas>
 <div id="status">Loading&hellip;</div>
 
-<div id="debug" style="white-space: pre-wrap;"></div>
+<div>
+    <div>
+        <span class="title">Stack</span>
+        <span class="meter" id="stack_usage"></span>
+    </div>
+    <div>
+        <span class="title">Static</span>
+        <span class="meter" id="static_usage"></span>
+    </div>
+</div>
+<div id="debug" style="white-space: pre-wrap; max-height: 200px; overflow: auto;"></div>
 <script src="debug.js"></script>
 
 <!--[if lt IE 9]>
@@ -58,17 +102,30 @@
 <script src="drawing.js"></script>
 <script src="GAME.js"></script><!-- This gets replaced with specific game.js -->
 <script>
+    function debug_memory_usage(where) {
+        debug(where,
+            "\nMax stack:", "0x"+MAX_STACK_USED.toString(16),
+            "Max static:", "0x"+MAX_STATIC_USED.toString(16))
+    }
+
     jQuery(function($) {
+        Meter('#stack_usage', STACK_MAX - STACK_ROOT, function() {
+            return { current: STACKTOP - STACK_ROOT, peak: MAX_STACK_USED };
+        });
+        Meter('#static_usage', TOTAL_MEMORY - STACK_MAX, function () {
+            return { current: STATICTOP - STACK_MAX, peak: MAX_STATIC_USED };
+        });
+
         debug("Creating Frontend...");
 
         var frontend = new Frontend('gameboard', 'status');
-        debug("Frontend created");
+        debug_memory_usage("Frontend created");
         var frontend_handle = CHandle(frontend);
         debug("Frontend wrapped:", frontend_handle);
 
         var init_game = Module.cwrap('init_game', 'number', ['number', 'string']);
         init_game(frontend_handle);
-        debug("Game initialized");
+        debug_memory_usage("Game initialized");
     });
 </script>
 </body>

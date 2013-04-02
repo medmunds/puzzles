@@ -1,4 +1,4 @@
-(function() {
+(function(globalScope) {
     "use strict";
 
     // Glue for referencing JS objects from C as (opaque) void* handles.
@@ -26,7 +26,7 @@
     function export_to_c(method, name, rettype, argtypes) {
         rettype = rettype || 'void';
         argtypes = argtypes || [];
-        window['_' + name] = function() {
+        globalScope['_' + name] = function() {
             // Convert arguments from C to JavaScript types:
             var args = Array.prototype.slice.call(arguments);
             for (var i = 0; i < argtypes.length; i++) {
@@ -73,5 +73,96 @@
     }
     Module.c_to_js_array = c_to_js_array;
 
-    window.CHandle = CHandle;
-})();
+    globalScope.CHandle = CHandle;
+})(this);
+
+
+//
+// Memory tracking
+//
+
+(function(globalScope) {
+    "use strict";
+
+    globalScope.MAX_STACK_USED = 0;
+    globalScope.MAX_STATIC_USED = 0;
+
+    if (typeof Object.defineProperty !== 'function') {
+        return;
+    }
+
+    var _stacktop,
+        _statictop,
+        max_stacktop = 0,
+        max_statictop = 0;
+
+    Object.defineProperty(globalScope, 'STACKTOP', {
+        set: function(val) {
+            if (val >= STACK_MAX) {
+                throw "Stack overflow";
+            }
+            _stacktop = val;
+            max_stacktop = Math.max(max_stacktop, _stacktop);
+            globalScope.MAX_STACK_USED = max_stacktop - STACK_ROOT;
+        },
+        get: function() {
+            return _stacktop;
+        }
+    });
+    Object.defineProperty(globalScope, 'STATICTOP', {
+        set: function(val) {
+            _statictop = val;
+            max_statictop = Math.max(max_statictop, _statictop);
+            globalScope.MAX_STATIC_USED = max_statictop - STACK_MAX;
+        },
+        get: function() {
+            return _statictop;
+        }
+    });
+})(this);
+
+
+(function($, globalScope) {
+    "use strict";
+
+    function pct(val) {
+        return (Math.round(val * 100) | 0) + "%";
+    }
+    function hex(val) {
+        return "0x" + val.toString(16);
+    }
+
+    function Meter(el, max, getData) {
+        var $meterEl = $(el),
+            meterWidth = $meterEl.width(),
+            $curBar = $('<span class="current"></span>').appendTo($meterEl),
+            $peakBar = $('<span class="peak"></span>').appendTo($meterEl),
+            $peakLabel = $('<span class="peakLabel"></span>').appendTo($meterEl),
+            $maxLabel = $('<span class="maxLabel"></span>').appendTo($meterEl);
+
+        $maxLabel.text(hex(max));
+
+        function update() {
+            var data = getData(),
+                curVal = data.current,
+                curFract = curVal / max,
+                peakVal =data.peak,
+                peakFract = peakVal / max;
+            var curLabel = hex(curVal) + " (" + pct(curFract) + ")",
+                peakLabel = hex(peakVal) + " (" + pct(peakFract) + ")";
+            $curBar
+                .width(curFract * meterWidth)
+                .attr('title', curLabel);
+            $peakBar.width(peakFract * meterWidth);
+            $peakLabel.text(peakLabel);
+        }
+
+        update();
+        setInterval(update, 500);
+    }
+
+    globalScope.Meter = Meter;
+
+})(jQuery, this);
+
+
