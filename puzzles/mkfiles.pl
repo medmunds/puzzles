@@ -1613,49 +1613,38 @@ if (defined $makefiles{'emcc'}) {
     &splitline("CFLAGS := -Wall -g " .
 	       (join " ", map {"-I$dirpfx$_"} @srcdirs) .
 	       " \$(CFLAGS)")."\n".
-	"C_EXPORT_LIST = ../c_exports.json\n".
-	"LDFLAGS := -O2 -s USE_TYPED_ARRAYS=0 ".
+	"C_EXPORT_LIST := ../c_exports.json\n".
+	&splitline("LDFLAGS := -O2 ".
 	    "-s TOTAL_MEMORY=0xC0000 -s FAST_MEMORY=0xC0000 -s TOTAL_STACK=0x10000 ".
-	    "-s EXPORTED_FUNCTIONS=\"`cat \$(C_EXPORT_LIST)`\"\n".
-    "BUILDDIR=./build\n".
-    "HTMLTMPL=../game.html\n".
+	    "-s EXPORTED_FUNCTIONS=\"`cat \$(C_EXPORT_LIST)`\"")."\n".
+    "BUILDDIR := ../build\n".
+    "HTMLTMPL := ../game.html\n".
     "\n";
     print &splitline("all: " . join " ", &progrealnames("X"));
     print "\n\n";
-    print &splitline(".PHONY: " . join " ", &progrealnames("X"));
+    print &splitline(".PHONY: all clean " . join " ", &progrealnames("X"));
     print "\n\n";
     foreach $p (&prognames("X")) {
       ($prog, $type) = split ",", $p;
-      print "$prog: \$(BUILDDIR)/$prog.js \$(BUILDDIR)/$prog.html\n";
-
-      $objstr = &objects($p, "X.o", undef, undef);
-      $objstr =~ s/gtk\.o/emscripten\.o/g;
-      print &splitline("\$(BUILDDIR)/" . $prog . ".js: " . $objstr
-        . " \$(C_EXPORT_LIST) | \$(BUILDDIR) "), "\n";
-      $libstr = &objects($p, undef, undef, "-lX");
-      print &splitline("\t\$(CC) \$(LDFLAGS) \$(${type}LDFLAGS) -o \$@ " .
-                       $objstr . " $libstr -lm", 69), "\n\n";
-      print "\$(BUILDDIR)/" . $prog . ".html: \$(HTMLTMPL) | \$(BUILDDIR)\n";
-      print "\tsed -e's/GAME.js/" . $prog . ".js/g' \$(HTMLTMPL) > \$@\n\n";
+      print "$prog: \$(BUILDDIR)/$prog.js \$(BUILDDIR)/$prog.fast.js \$(BUILDDIR)/$prog.html\n";
+      $objstr = &objects($p, "X.bc", undef, undef);
+      $objstr =~ s/gtk\.bc/emscripten\.bc/g;
+      print &splitline("\$(BUILDDIR)/$prog.js \$(BUILDDIR)/$prog.fast.js: " . $objstr), "\n";
+      print "\n";
     }
-    foreach $d (&deps("X.o", undef, $dirpfx, "/")) {
+    foreach $d (&deps("X.bc", undef, $dirpfx, "/")) {
       $oobjs = $d->{obj};
       $ddeps= join " ", @{$d->{deps}};
       $oobjs =~ s/gtk/emscripten/g;
       $ddeps =~ s/gtk/emscripten/g;
       print &splitline(sprintf("%s: %s", $oobjs, $ddeps)),
           "\n";
-      $deflist = join "", map { " -D$_" } @{$d->{defs}};
-      print "\t\$(CC) \$(COMPAT) \$(FWHACK) \$(CFLAGS) \$(XFLAGS)$deflist" .
-	  " -c \$< -o \$\@\n";
     }
     print "\n";
-    print "\$(BUILDDIR):\n" .
-      "\tmkdir -p \$(BUILDDIR)\n\n";
     print $makefile_extra{'emcc'} || "";
     print "\nclean:\n";
-    print &splitline("\trm -f *.o " .
-      (join " ", map { "\$(BUILDDIR)/$_.{js,html}" } &progrealnames("X")), 69)
+    print &splitline("\trm -f *.bc " .
+      (join " ", map { "\$(BUILDDIR)/$_.{js,fast.js,html}" } &progrealnames("X")), 69)
       . "\n";
     select STDOUT; close OUT;
 }

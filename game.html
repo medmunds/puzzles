@@ -3,7 +3,7 @@
 <html>
 <head>
     <meta charset="utf-8" />
-    <title>Game</title>
+    <title>{{GAME}}</title>
     <!--[if lt IE 9]>
     <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.6.2/html5shiv.js"></script>
     <![endif]-->
@@ -49,12 +49,12 @@
     </style>
 </head>
 <body>
-<h1 id="title">Game</h1>
+<h1 id="title">{{GAME}}</h1>
+<a class="docs" href="http://www.chiark.greenend.org.uk/~sgtatham/puzzles/doc/{{GAME}}.html"
+    target="puzzle_docs">Instructions</a>
 
 <menu type="toolbar">
     <button id="game_new">New Game</button>
-    <button id="game_save">Save Game</button>
-    <button id="game_load">Load Game</button>
     <button id="game_restart">Restart Game</button>
     <button id="game_solve">Show Solution</button>
     <button id="undo">Undo</button>
@@ -88,20 +88,33 @@
     Module = {};
     Module['noInitialRun'] = true;
     Module['noExitRuntime'] = true;
-
-    // Qualify this browser... later use this to load appropriate emcc-generated game.js
-    if (typeof Int32Array === 'undefined') {
-        debug("No typed array support");
-    } else if (typeof Float64Array === 'undefined') {
-        debug("No Float64Array support");
-    }
 </script>
 <script src="lib/jquery.requestAnimationFrame.min.js"></script>
 <script src="cglue.js"></script>
 <script src="frontend.js"></script>
 <script src="drawing.js"></script>
-<script src="GAME.js"></script><!-- This gets replaced with specific game.js -->
 <script>
+    // Load the correct version of game.js for this browser.
+    // (Safari 5 mobile doesn't support Float64Array;
+    // Android, IE, etc. don't support any typed arrays.
+    // Chrome and Firefox run significantly faster with typed arrays.)
+    (function($) {
+        var supportsTypedArrays = (typeof Float64Array !== 'undefined'),
+            gameSrc = "{{GAME}}" + (supportsTypedArrays ? ".fast.js" : ".js");
+        debug("Loading game from", gameSrc);
+
+        $.holdReady(true);
+        // $.getScript(gameSrc); -- but don't append a cachebuster param
+        $.ajax({
+            url: gameSrc,
+            dataType: "script",
+            cache: true,
+            success: function() {
+                $.holdReady(false);
+            }
+        });
+    })(jQuery);
+
     function debug_memory_usage(where) {
         debug(where,
             "\nMax stack:", "0x"+MAX_STACK_USED.toString(16),
