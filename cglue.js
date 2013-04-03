@@ -23,10 +23,13 @@
         return chandle;
     }
 
+    var exported_functions = {};
+
     function export_to_c(method, name, rettype, argtypes) {
         rettype = rettype || 'void';
         argtypes = argtypes || [];
-        globalScope['_' + name] = function() {
+        var _name = '_' + name;
+        globalScope[_name] = exported_functions[_name] = function() {
             // Convert arguments from C to JavaScript types:
             var args = Array.prototype.slice.call(arguments);
             for (var i = 0; i < argtypes.length; i++) {
@@ -61,6 +64,17 @@
     }
     Module.export_to_c = export_to_c;
 
+    function reexport_all_to_c(scope) {
+        // Necessary to work around an IE8 bug that removes our functions
+        // from window when the Emscripten generated code declares var statements
+        // for them. Call from Emscripten pre-js.
+        scope = scope || globalScope;
+        Object.keys(exported_functions).map(function(_name) {
+            scope[_name] = exported_functions[_name];
+        });
+    }
+    Module.reexport_all_to_c = reexport_all_to_c;
+
     function c_to_js_array(ptr, len, type) {
         var ptrtype = type + '*',
             size = Runtime.getNativeTypeSize(type),
@@ -74,52 +88,50 @@
     Module.c_to_js_array = c_to_js_array;
 
     globalScope.CHandle = CHandle;
-})(this);
+})(window);
 
 
 //
 // Memory tracking
 //
 
-(function(globalScope) {
-    "use strict";
+if (typeof Object.defineProperty === 'function') {
+    (function(globalScope) {
+        "use strict";
 
-    globalScope.MAX_STACK_USED = 0;
-    globalScope.MAX_STATIC_USED = 0;
+        globalScope.MAX_STACK_USED = 0;
+        globalScope.MAX_STATIC_USED = 0;
 
-    if (typeof Object.defineProperty !== 'function') {
-        return;
-    }
+        var _stacktop,
+            _statictop,
+            max_stacktop = 0,
+            max_statictop = 0;
 
-    var _stacktop,
-        _statictop,
-        max_stacktop = 0,
-        max_statictop = 0;
-
-    Object.defineProperty(globalScope, 'STACKTOP', {
-        set: function(val) {
-            if (val >= STACK_MAX) {
-                throw "Stack overflow";
+        Object.defineProperty(globalScope, 'STACKTOP', {
+            set: function(val) {
+                if (val >= STACK_MAX) {
+                    throw "Stack overflow";
+                }
+                _stacktop = val;
+                max_stacktop = Math.max(max_stacktop, _stacktop);
+                globalScope.MAX_STACK_USED = max_stacktop - STACK_ROOT;
+            },
+            get: function() {
+                return _stacktop;
             }
-            _stacktop = val;
-            max_stacktop = Math.max(max_stacktop, _stacktop);
-            globalScope.MAX_STACK_USED = max_stacktop - STACK_ROOT;
-        },
-        get: function() {
-            return _stacktop;
-        }
-    });
-    Object.defineProperty(globalScope, 'STATICTOP', {
-        set: function(val) {
-            _statictop = val;
-            max_statictop = Math.max(max_statictop, _statictop);
-            globalScope.MAX_STATIC_USED = max_statictop - STACK_MAX;
-        },
-        get: function() {
-            return _statictop;
-        }
-    });
-})(this);
+        });
+        Object.defineProperty(globalScope, 'STATICTOP', {
+            set: function(val) {
+                _statictop = val;
+                max_statictop = Math.max(max_statictop, _statictop);
+                globalScope.MAX_STATIC_USED = max_statictop - STACK_MAX;
+            },
+            get: function() {
+                return _statictop;
+            }
+        });
+    })(window);
+}
 
 
 (function($, globalScope) {
@@ -163,6 +175,6 @@
 
     globalScope.Meter = Meter;
 
-})(jQuery, this);
+})(jQuery, window);
 
 

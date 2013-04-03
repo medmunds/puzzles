@@ -64,7 +64,7 @@
 <canvas id="gameboard"></canvas>
 <div id="status">Loading&hellip;</div>
 
-<div>
+<div id="memdebug">
     <div>
         <span class="title">Stack</span>
         <span class="meter" id="stack_usage"></span>
@@ -77,9 +77,11 @@
 <div id="debug" style="white-space: pre-wrap; max-height: 200px; overflow: auto;"></div>
 <script src="debug.js"></script>
 
+<script src="lib/future.js"></script>
+
 <!--[if lt IE 9]>
 <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-<script src="lib/excanvas.compiled.js"></script>
+<script src="lib/excanvas.js"></script>
 <![endif]-->
 <!--[if gte IE 9]><!-->
 <script src="http://code.jquery.com/jquery-2.0.0b2.min.js"></script>
@@ -94,6 +96,8 @@
 <script src="frontend.js"></script>
 <script src="drawing.js"></script>
 <script>
+    debug("Before loading gamescript, _activate_timer is", typeof _activate_timer);
+
     // Load the correct version of game.js for this browser.
     // (Safari 5 mobile doesn't support Float64Array;
     // Android, IE, etc. don't support any typed arrays.
@@ -115,19 +119,28 @@
         });
     })(jQuery);
 
-    function debug_memory_usage(where) {
-        debug(where,
-            "\nMax stack:", "0x"+MAX_STACK_USED.toString(16),
-            "Max static:", "0x"+MAX_STATIC_USED.toString(16))
-    }
-
     jQuery(function($) {
-        Meter('#stack_usage', STACK_MAX - STACK_ROOT, function() {
-            return { current: STACKTOP - STACK_ROOT, peak: MAX_STACK_USED };
-        });
-        Meter('#static_usage', TOTAL_MEMORY - STACK_MAX, function () {
-            return { current: STATICTOP - STACK_MAX, peak: MAX_STATIC_USED };
-        });
+        debug("In onready, _activate_timer is", typeof _activate_timer);
+
+        var debug_memory_usage;
+        if (typeof MAX_STACK_USED !== 'undefined') {
+            debug_memory_usage = function(where) {
+                debug(where,
+                    "\nMax stack:", "0x"+MAX_STACK_USED.toString(16),
+                    "Max static:", "0x"+MAX_STATIC_USED.toString(16))
+            };
+            Meter('#stack_usage', STACK_MAX - STACK_ROOT, function() {
+                return { current: STACKTOP - STACK_ROOT, peak: MAX_STACK_USED };
+            });
+            Meter('#static_usage', TOTAL_MEMORY - STACK_MAX, function () {
+                return { current: STATICTOP - STACK_MAX, peak: MAX_STATIC_USED };
+            });
+
+        } else {
+            $("#memdebug").hide();
+            debug_memory_usage = debug;
+        }
+
 
         debug("Creating Frontend...");
 

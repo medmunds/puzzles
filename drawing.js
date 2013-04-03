@@ -1,4 +1,4 @@
-(function($) {
+(function($, globalScope) {
     "use strict";
 
     // from puzzles.h:
@@ -192,6 +192,6 @@
         'void', ['handle', 'handle', 'number', 'number']);
 
     // exports
-    window.Drawing = Drawing;
+    globalScope.Drawing = Drawing;
 
-})(jQuery);
+})(jQuery, window);

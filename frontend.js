@@ -4,7 +4,7 @@
 // Works with mid-end and backend code cross-compiled to JS using emscripten.
 
 
-(function($) {
+(function($, globalScope) {
     "use strict";
 
     // from puzzles.h:
@@ -95,6 +95,7 @@
         this.chandle = CHandle(this);
 
         this.$canvas = $('#'+canvas_id);
+        this.canvas = this.$canvas.get(0);
         this.$status = $('#'+status_id);
         this._initEvents();
     }
@@ -127,12 +128,12 @@
         activate_timer: function() {
             if (!this.animationId) {
                 this.lastAnimationTime = Date.now();
-                this.animationId = window.requestAnimationFrame(this._animationEvent.bind(this));
+                this.animationId = requestAnimationFrame(this._animationEvent.bind(this));
             }
         },
         deactivate_timer: function() {
             if (this.animationId) {
-                window.cancelAnimationFrame(this.animationId); // TODO: non-portable
+                cancelAnimationFrame(this.animationId);
                 this.animationId = null;
             }
         },
@@ -140,7 +141,7 @@
             var now = Date.now(),
                 seconds = (now - this.lastAnimationTime) / 1000;
             this.lastAnimationTime = now;
-            this.animationId = window.requestAnimationFrame(this._animationEvent.bind(this));
+            this.animationId = requestAnimationFrame(this._animationEvent.bind(this));
             midend_timer(this.midend, seconds);
         },
 
@@ -160,10 +161,15 @@
 
             var x = evt.offsetX,
                 y = evt.offsetY;
-            if (x === undefined) {
-                var targetOffset = $(evt.target).offset();
-                x = evt.pageX - targetOffset.left;
-                y = evt.pageY - targetOffset.top;
+            if (x === undefined || evt.target !== this.canvas) {
+                // Firefox doesn't supply offsetX,Y
+                // IE does, but they're relative to excanvas's VML shapes (rather than the canvas)
+                if (evt.type === "mousedown") {
+                    // Cache offset for duration of mouse drag sequence
+                    this.canvasOffset = this.$canvas.offset();
+                }
+                x = evt.pageX - this.canvasOffset.left;
+                y = evt.pageY - this.canvasOffset.top;
             }
             var button = mouseEventMap[evt.type] + evt.which - 1; // which: 1,2,3 left,mid,right
             if (evt.ctrlKey)
@@ -216,20 +222,7 @@
 
     // Exports
 
-    window.Frontend = Frontend;
+    globalScope.Frontend = Frontend;
 
 
-        //
-        // Game Controls
-        //
-//        js_add_preset: function(name, params) {
-//            name = Pointer_stringify(name);
-//        },
-//        js_mark_current_preset: function(index) {
-//        },
-//
-//        js_init_game: function(name, can_configure, wants_statusbar, can_solve) {
-//            name = Pointer_stringify(name);
-//        }
-
-})(jQuery);
+})(jQuery, window);
