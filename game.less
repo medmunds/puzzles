@@ -1,21 +1,68 @@
 @import "third_party/bootstrap/less/bootstrap.less";
+@import "third_party/bootstrap/less/responsive.less";
+
+// Additional reset:
+
+menu {
+    padding: 0;
+    margin: 0;
+}
+
+// Style basic (semantic) elements:
+
+button {
+    .btn;
+}
+
+
+//
+// Page Layout
+//
+
+section, .game {
+    margin: @baseLineHeight 0;
+}
+
+//
+// Header
+//
+
+header {
+    .page-header;
+
+    h1 {
+        display: inline-block;
+        margin: 0 0.25em 0 0; // right margin for inline subtitle
+    }
+
+    .subtitle {
+        display: inline-block;
+        .muted;
+    }
+}
+
+//
+// Game
+//
+
+.game {
+    .well;
+    .well-small; // don't need too much padding, as games tend to have their own
+}
+
+#status {
+    margin-bottom: (@baseLineHeight / 2);
+}
 
 #gameboard {
-    background-color: #cccccc;
+    display: block;
+    background-color: @wellBackground;
     cursor: default;
 }
 
 #status, .keyboard {
     // Hide these items unless/until the game want them
     display: none;
-}
-
-menu {
-    padding: 0;
-}
-
-button {
-   .btn;
 }
 
 .keyboard {
@@ -29,33 +76,46 @@ button {
 }
 
 
-/* DEBUGGING STUFF ... */
+//
+// DEBUGGING STUFF
+//
+
+.debug {
+    margin: (2 * @baseLineHeight) 0 0;
+    padding-top: ((@baseLineHeight / 2) - 1);
+    border-top: 1px solid @grayLight;
+}
 
 #memdebug {
-    margin-top: 2em;
+}
+
+#debug {
+    white-space: pre-wrap;
+    margin-top: @baseLineHeight;
 }
 
 .meter {
     display: inline-block;
     position: relative;
     width: 250px;
-    height: 1em;
-    background-color: #eee;
+    height: @baseLineHeight;
+    background-color: @grayLighter;
+    vertical-align: bottom;
 }
 .meter .current, .meter .peak {
     display: block;
     position: absolute;
     left: 0;
     top: 0;
-    height: 1em;
+    height: @baseLineHeight;
 }
 .meter .peak {
-    background-color: #aec;
+    background-color: @successBorder;
 }
 .meter .current {
     left: -1px;
     background-color: transparent;
-    border-right: 2px solid #900;
+    border-right: 2px solid @errorText;
 }
 .meter .maxLabel {
     position: absolute;

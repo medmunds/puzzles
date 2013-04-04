@@ -11,55 +11,77 @@
     <link href="game.css" rel="stylesheet">
 </head>
 <body>
-<h1 id="title">{{GAME}}</h1>
-<a class="docs" href="http://www.chiark.greenend.org.uk/~sgtatham/puzzles/doc/{{GAME}}.html"
-    target="puzzle_docs">Instructions</a>
+<div class="container">
 
-<menu type="toolbar">
-    <button id="game_new">New Game</button>
-    <button id="game_restart">Restart Game</button>
-    <button id="game_solve">Show Solution</button>
-    <button id="undo">Undo</button>
-    <button id="redo">Redo</button>
-</menu>
+    <header>
+        <h1>{{GAME}}</h1>
+        <span class="subtitle">from Simon Tatham's portable puzzle collection</span>
+    </header>
 
-<div id="status"></div>
-<canvas id="gameboard"></canvas>
+    <section class="app">
 
-<menu type="toolbar" class="keyboard">
-    <div class="buttongroup">
-        <button>1</button>
-        <button>2</button>
-        <button>3</button>
-        <button>4</button>
-        <button>5</button>
-    </div>
-    <div class="buttongroup">
-        <button>6</button>
-        <button>7</button>
-        <button>8</button>
-        <button>9</button>
-        <button>0</button>
-    </div>
-    <div class="buttongroup">
-        <button data-key="0x0D">Pencil</button>
-        <button data-key="0x7F">Clear</button>
-    </div>
-</menu>
+        <menu class="control" type="toolbar">
+            <button id="game_new" title="New game">New</button>
+            <button id="game_restart" title="Reset this game to the beginning">Restart</button>
+            <button id="game_solve" title="Show solution">Solve</button>
+            <button id="undo" title="Reverse your last move">Undo</button>
+            <button id="redo">Redo</button>
+        </menu>
 
-<div id="memdebug">
-    <div>
-        <span class="title">Stack</span>
-        <span class="meter" id="stack_usage"></span>
-    </div>
-    <div>
-        <span class="title">Static</span>
-        <span class="meter" id="static_usage"></span>
-    </div>
+        <div class="game">
+            <div id="status"></div>
+            <canvas id="gameboard"></canvas>
+        </div>
+
+        <menu class="keyboard" type="toolbar">
+            <div class="buttongroup">
+                <button>1</button>
+                <button>2</button>
+                <button>3</button>
+                <button>4</button>
+                <button>5</button>
+            </div>
+            <div class="buttongroup">
+                <button>6</button>
+                <button>7</button>
+                <button>8</button>
+                <button>9</button>
+                <button>0</button>
+            </div>
+            <div class="buttongroup">
+                <button data-key="0x0D" title="Toggle pen/pencil mode">Pencil</button>
+                <button data-key="0x7F" title="Blank the selected cell">Clear</button>
+            </div>
+        </menu>
+    </section>
+
+    <section class="help">
+        <!-- Add some {{SHORT_HELP_TEXT}} here -->
+        <p>See the
+            <a class="docs"
+               href="http://www.chiark.greenend.org.uk/~sgtatham/puzzles/doc/{{GAME}}.html"
+               target="puzzle_docs">full instructions</a></p>
+    </section>
+
+    <section class="debug">
+        <div id="memdebug">
+            <div>
+                <span class="title">Stack</span>
+                <span class="meter" id="stack_usage"></span>
+            </div>
+            <div>
+                <span class="title">Static</span>
+                <span class="meter" id="static_usage"></span>
+            </div>
+        </div>
+
+        <div id="debug"></div>
+    </section>
+
 </div>
-<div id="debug" style="white-space: pre-wrap; max-height: 200px; overflow: auto;"></div>
-<script src="debug.js"></script>
 
+
+<script src="debug.js"></script>
 <script src="lib/future.js"></script>
 
 <!--[if lt IE 9]>
