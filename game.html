@@ -146,57 +146,53 @@
     // (Safari 5 mobile doesn't support Float64Array;
     // Android, IE, etc. don't support any typed arrays.
     // Chrome and Firefox run significantly faster with typed arrays.)
-    (function($) {
+    (function() {
         var supportsTypedArrays = (typeof Float64Array !== 'undefined'),
-            gameSrc = "{{GAME}}" + (supportsTypedArrays ? ".fast.js" : ".js");
+            gameSrc = "{{GAME}}" + (supportsTypedArrays ? ".fast.js" : ".js"),
+            script = document.createElement('script'),
+            head = document.getElementsByTagName('head')[0];
         debug("Loading game from", gameSrc);
+        script.src = gameSrc;
+        head.appendChild(script);
+        // The final line of gameSrc calls game_script_loaded() in the global namespace
+    })();
 
-        $.holdReady(true);
-        // $.getScript(gameSrc); -- but don't append a cachebuster param
-        $.ajax({
-            url: gameSrc,
-            dataType: "script",
-            cache: true,
-            success: function() {
-                $.holdReady(false);
+    function game_script_loaded() {
+        jQuery(function($) { // once the DOM is ready (perhaps immediately)...
+            debug("In onready, _activate_timer is", typeof _activate_timer);
+
+            var debug_memory_usage;
+            if (typeof MAX_STACK_USED !== 'undefined') {
+                debug_memory_usage = function(where) {
+                    debug(where,
+                        "\nMax stack:", "0x"+MAX_STACK_USED.toString(16),
+                        "Max static:", "0x"+MAX_STATIC_USED.toString(16))
+                };
+                Meter('#stack_usage', STACK_MAX - STACK_ROOT, function() {
+                    return { current: STACKTOP - STACK_ROOT, peak: MAX_STACK_USED };
+                });
+                Meter('#static_usage', TOTAL_MEMORY - STACK_MAX, function () {
+                    return { current: STATICTOP - STACK_MAX, peak: MAX_STATIC_USED };
+                });
+
+            } else {
+                $("#memdebug").hide();
+                debug_memory_usage = debug;
             }
+
+
+            debug("Creating Frontend...");
+
+            var frontend = new Frontend('gameboard', 'status');
+            debug_memory_usage("Frontend created");
+            var frontend_handle = CHandle(frontend);
+            debug("Frontend wrapped:", frontend_handle);
+
+            var init_game = Module.cwrap('init_game', 'number', ['number', 'string']);
+            init_game(frontend_handle);
+            debug_memory_usage("Game initialized");
         });
-    })(jQuery);
-
-    jQuery(function($) {
-        debug("In onready, _activate_timer is", typeof _activate_timer);
-
-        var debug_memory_usage;
-        if (typeof MAX_STACK_USED !== 'undefined') {
-            debug_memory_usage = function(where) {
-                debug(where,
-                    "\nMax stack:", "0x"+MAX_STACK_USED.toString(16),
-                    "Max static:", "0x"+MAX_STATIC_USED.toString(16))
-            };
-            Meter('#stack_usage', STACK_MAX - STACK_ROOT, function() {
-                return { current: STACKTOP - STACK_ROOT, peak: MAX_STACK_USED };
-            });
-            Meter('#static_usage', TOTAL_MEMORY - STACK_MAX, function () {
-                return { current: STATICTOP - STACK_MAX, peak: MAX_STATIC_USED };
-            });
-
-        } else {
-            $("#memdebug").hide();
-            debug_memory_usage = debug;
-        }
-
-
-        debug("Creating Frontend...");
-
-        var frontend = new Frontend('gameboard', 'status');
-        debug_memory_usage("Frontend created");
-        var frontend_handle = CHandle(frontend);
-        debug("Frontend wrapped:", frontend_handle);
-
-        var init_game = Module.cwrap('init_game', 'number', ['number', 'string']);
-        init_game(frontend_handle);
-        debug_memory_usage("Game initialized");
-    });
+    }
 </script>
 </body>
 </html>

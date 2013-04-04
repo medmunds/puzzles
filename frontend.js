@@ -68,7 +68,10 @@
         midend_can_undo,
         midend_can_redo;
 
-    $(function() {
+    function initCImports() {
+        if (midend_new_game){
+            return;
+        }
         midend_new_game = Module.cwrap('midend_new_game', 'void', ['number']);
         midend_restart_game = Module.cwrap('midend_restart_game', 'void', ['number']);
         midend_redraw = Module.cwrap('midend_redraw', 'void', ['number']);
@@ -80,13 +83,15 @@
         midend_status = Module.cwrap('midend_status', 'number', ['number']);
         midend_can_undo = Module.cwrap('midend_can_undo', 'number', ['number']);
         midend_can_redo = Module.cwrap('midend_can_redo', 'number', ['number']);
-    });
+    };
 
 
     function Frontend(canvas_id, status_id) {
         if (!(this instanceof Frontend)) {
             return new Frontend(canvas_id, status_id);
         }
+        initCImports();
+
         this.animationId = false;
         this.lastAnimationTime = 0;
         this.drawing = null;
