@@ -180,6 +180,44 @@
             return false;
         },
 
+        _touchEvent: function(evt) {
+            evt.preventDefault(); // we consume the touch event
+
+            var type = null,
+                touch = evt.changedTouches[0],
+                button = 1;
+            switch (evt.type) {
+                case "touchstart": type = "mousedown"; break;
+                case "touchmove":  type = "mousemove"; break;
+                case "touchend":   type = "mouseup"; break;
+            }
+            var mouseEvent = $.Event(type, {
+                altKey: evt.altKey,
+                bubbles: true,
+                button: button,
+                cancelable: true,
+                clientX: touch.clientX,
+                clientY: touch.clientY,
+                ctrlKey: evt.ctrlKey,
+                currentTarget: this.canvas,
+                detail: button,
+                metaKey: evt.metaKey,
+                originalTarget: evt.originalTarget,
+                pageX: touch.pageX,
+                pageY: touch.pageY,
+                relatedTarget: null,
+                screenX: touch.screenX,
+                screenY: touch.screenY,
+                shiftKey: evt.shiftKey,
+                which: button
+            });
+
+            //debug(mouseEvent.type, mouseEvent.which, mouseEvent.clientX, mouseEvent.clientY);
+            this.$canvas.trigger(mouseEvent);
+
+            return false;
+        },
+
         _keyEvent: function(evt) {
             var button, retval;
 
@@ -200,6 +238,10 @@
         _initEvents: function() {
             $(document).on('keydown keypress', this._keyEvent.bind(this));
             this.$canvas.on('mousedown mousemove mouseup', this._mouseEvent.bind(this));
+            // jQuery 2 seems to have a bug accessing undefined objects in touch events
+            //this.$canvas.on('touchstart touchmove touchend', this._touchEvent.bind(this));
+            this.canvas.ontouchstart = this.canvas.ontouchmove =
+                this.canvas.ontouchend = this._touchEvent.bind(this);
             this.$canvas.on('contextmenu', function(evt) {
                 // block right-mouse menu over canvas
                 evt.preventDefault();
