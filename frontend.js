@@ -153,6 +153,27 @@
         },
 
 
+        set_game_options: function(name, can_configure, can_solve,
+                                   can_format_as_text_ever,
+                                   wants_statusbar, is_timed,
+                                   require_rbutton, require_numpad)
+        {
+            this.gameName = name;
+            this.configurable = !!can_configure;
+            this.solveable = !!can_solve;
+            this.saveable = !!can_format_as_text_ever;
+            this.hasStatusBar = !!wants_statusbar;
+            this.isTimed = !!is_timed;
+            this.usesRightButton = !!require_rbutton;
+            this.usesNumpad = !!require_numpad;
+
+            this.$status.toggle(this.hasStatusBar);
+
+            $('h1').text(this.gameName);
+            $('.keyboard').toggle(this.usesNumpad);
+            $("#game_solve").toggle(this.solveable);
+        },
+
         _mouseEvent: function(evt) {
             if (evt.which === 0) {
                 // mouse moving over canvas with no button down -- game doesn't care
@@ -235,6 +256,21 @@
             return retval;
         },
 
+        _virtualKeyboardPress: function(evt) {
+            var $button = $(evt.target),
+                keycode = $button.attr('data-key'),
+                key;
+
+            if (keycode) {
+                key = parseInt(keycode);
+            } else {
+                key = $button.text().charCodeAt(0);
+            }
+            if (key) {
+                midend_process_key(this.midend, -1, -1, key);
+            }
+        },
+
         _initEvents: function() {
             $(document).on('keydown keypress', this._keyEvent.bind(this));
             this.$canvas.on('mousedown mousemove mouseup', this._mouseEvent.bind(this));
@@ -253,6 +289,8 @@
             $("#game_solve").click( this.solve.bind(this));
             $("#undo").click(this.undo.bind(this));
             $("#redo").click(this.redo.bind(this));
+
+            $(".keyboard").on('click', 'button', this._virtualKeyboardPress.bind(this));
         }
     };
 
@@ -261,6 +299,8 @@
     Module.export_to_c(Frontend.prototype.activate_timer, 'activate_timer', 'void', ['handle']);
     Module.export_to_c(Frontend.prototype.deactivate_timer, 'deactivate_timer', 'void', ['handle']);
     Module.export_to_c(Frontend.prototype.get_drawing, 'frontend_get_drawing', 'handle', ['handle']);
+    Module.export_to_c(Frontend.prototype.set_game_options, 'frontend_set_game_options', 'void',
+        ['handle', 'string', 'number', 'number', 'number', 'number', 'number', 'number', 'number']);
 
     // Exports
 

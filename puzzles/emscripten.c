@@ -122,41 +122,11 @@ const struct drawing_api canvas_drawing = {
 
 
 /*
- * Event Handling
+ * Configuration
  * http://www.chiark.greenend.org.uk/~sgtatham/puzzles/devel/midend.html#midend
  */
 
 #ifdef NOTYET
-
-int jcallback_resize(int width, int height)
-{
-    frontend *fe = (frontend *)_fe;
-    int x, y;
-    x = width;
-    y = height;
-    midend_size(fe->me, &x, &y, TRUE);
-    fe->ox = (width - x) / 2;
-    fe->oy = (height - y) / 2;
-    fe->w = x;
-    fe->h = y;
-    midend_force_redraw(fe->me);
-    return 0;
-}
-
-int jcallback_timer_func()
-{
-    frontend *fe = (frontend *)_fe;
-    if (fe->timer_active) {
-	struct timeval now;
-	float elapsed;
-	gettimeofday(&now, NULL);
-	elapsed = ((now.tv_usec - fe->last_time.tv_usec) * 0.000001F +
-		   (now.tv_sec - fe->last_time.tv_sec));
-        midend_timer(fe->me, elapsed);	/* may clear timer_active */
-	fe->last_time = now;
-    }
-    return fe->timer_active;
-}
 
 void jcallback_config_ok()
 {
@@ -207,14 +177,6 @@ static int get_config(frontend *fe, int which)
     return fe->cfgret;
 }
 
-int jcallback_menu_key_event(int key)
-{
-    frontend *fe = (frontend *)_fe;
-    if (!midend_process_key(fe->me, 0, 0, key))
-	return 42;
-    return 0;
-}
-
 #endif /* NOTYET */
 
 static void resize_fe(frontend *fe)
@@ -243,26 +205,6 @@ int jcallback_preset_event(int ptr_game_params)
     midend_new_game(fe->me);
     resize_fe(fe);
     _call_java(13, midend_which_preset(fe->me), 0, 0);
-    return 0;
-}
-
-int jcallback_solve_event()
-{
-    frontend *fe = (frontend *)_fe;
-    char *msg;
-
-    msg = midend_solve(fe->me);
-
-    if (msg)
-	_call_java(2, (int) "Error", (int)msg, 1);
-    return 0;
-}
-
-int jcallback_restart_event()
-{
-    frontend *fe = (frontend *)_fe;
-
-    midend_restart_game(fe->me);
     return 0;
 }
 
@@ -301,7 +243,9 @@ int jcallback_about_event()
 
 extern void js_add_preset(char *name, game_params *params);
 extern void js_mark_current_preset(int index);
-extern void js_init_game(const char *name, int can_configure, int wants_statusbar, int can_solve);
+extern void frontend_set_game_options(frontend *fe,
+    const char *name, int can_configure, int can_solve, int can_format_as_text_ever,
+    int wants_statusbar, int is_timed, int require_rbutton, int require_numpad);
 
 int init_game(frontend *fe, char *game_id)
 {
@@ -311,6 +255,18 @@ int init_game(frontend *fe, char *game_id)
     midend* me;
 
     dhandle = frontend_get_drawing(fe);
+
+    frontend_set_game_options(
+        fe,
+        thegame.name,
+        thegame.can_configure,
+	    thegame.can_solve,
+	    thegame.can_format_as_text_ever,
+	    thegame.wants_statusbar,
+	    thegame.is_timed,
+	    (thegame.flags & REQUIRE_RBUTTON) == REQUIRE_RBUTTON,
+	    (thegame.flags & REQUIRE_NUMPAD) == REQUIRE_NUMPAD
+	);
 
     me = midend_new(fe, &thegame, &canvas_drawing, dhandle);
     frontend_set_midend(fe, me);
@@ -338,12 +294,6 @@ int init_game(frontend *fe, char *game_id)
 		   (int)(colours[i*3+1] * 0xFF),
 		   (int)(colours[i*3+2] * 0xFF));
     }
-
-    /*
-    js_init_game(thegame.name, thegame.can_configure,
-	       midend_wants_statusbar(me),
-	       thegame.can_solve);
-    */
 
     resize_fe(fe);
 

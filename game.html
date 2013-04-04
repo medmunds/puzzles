@@ -13,6 +13,29 @@
             cursor: default;
         }
 
+        #status, .keyboard {
+            display: none;
+        }
+
+        menu {
+            padding: 0;
+        }
+
+        .keyboard button {
+            font-size: 1.25em;
+            padding: 0.5em;
+        }
+
+        .keyboard .buttongroup {
+            margin: 0.5em;
+        }
+
+        /* DEBUGGING STUFF ... */
+
+        #memdebug {
+            margin-top: 2em;
+        }
+
         .meter {
             display: inline-block;
             position: relative;
@@ -61,8 +84,29 @@
     <button id="redo">Redo</button>
 </menu>
 
+<div id="status"></div>
 <canvas id="gameboard"></canvas>
-<div id="status">Loading&hellip;</div>
+
+<menu type="toolbar" class="keyboard">
+    <div class="buttongroup">
+        <button>1</button>
+        <button>2</button>
+        <button>3</button>
+        <button>4</button>
+        <button>5</button>
+    </div>
+    <div class="buttongroup">
+        <button>6</button>
+        <button>7</button>
+        <button>8</button>
+        <button>9</button>
+        <button>0</button>
+    </div>
+    <div class="buttongroup">
+        <button data-key="0x0D">Pencil</button>
+        <button data-key="0x7F">Clear</button>
+    </div>
+</menu>
 
 <div id="memdebug">
     <div>

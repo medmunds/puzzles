@@ -38,7 +38,8 @@
             this.palette[index] = rgb2hex(r, g, b);
         },
         status_bar: function(text) {
-            this.$status.text(text);
+            // don't let statusbar be completely empty, as it collapses and makes the screen jump
+            this.$status.text(text || " ");
         },
 
         resize: function(w, h) {
