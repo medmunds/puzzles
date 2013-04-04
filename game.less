@@ -1,9 +1,12 @@
+@import "third_party/bootstrap/less/bootstrap.less";
+
 #gameboard {
     background-color: #cccccc;
     cursor: default;
 }
 
 #status, .keyboard {
+    // Hide these items unless/until the game want them
     display: none;
 }
 
@@ -11,14 +14,20 @@ menu {
     padding: 0;
 }
 
-.keyboard button {
-    font-size: 1.25em;
-    padding: 0.5em;
+button {
+   .btn;
 }
 
-.keyboard .buttongroup {
-    margin: 0.5em;
+.keyboard {
+    button {
+        .btn-large;
+    }
+
+    .buttongroup {
+        margin: 0.5em;
+    }
 }
+
 
 /* DEBUGGING STUFF ... */
 
