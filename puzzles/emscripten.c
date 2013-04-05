@@ -217,7 +217,7 @@ int jcallback_about_event()
 extern void frontend_set_game_info(frontend *fe, midend *me,
     const char *name, int can_configure, int can_solve, int can_format_as_text_ever,
     int wants_statusbar, int is_timed, int require_rbutton, int require_numpad);
-extern void frontend_add_preset(char *name, game_params *params);
+extern void frontend_add_preset(frontend *fe, char *name, game_params *params);
 
 void init_game(frontend *fe, void *dhandle)
 {
@@ -240,16 +240,14 @@ void init_game(frontend *fe, void *dhandle)
 	    (thegame.flags & REQUIRE_NUMPAD) == REQUIRE_NUMPAD
 	);
 
-    /*
     if ((n = midend_num_presets(me)) > 0) {
         for (i = 0; i < n; i++) {
             char *name;
             game_params *params;
             midend_fetch_preset(me, i, &name, &params);
-	        frontend_add_preset(name, params);
+	        frontend_add_preset(fe, name, params);
         }
     }
-    */
 
     colours = midend_colours(me, &n);
     for (i = 0; i < n; i++) {

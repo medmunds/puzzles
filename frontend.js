@@ -60,11 +60,14 @@
     var init_game,
         midend_new_game,
         midend_restart_game,
+        midend_set_params,
+        midend_get_params,
         midend_size,
         midend_redraw,
         midend_force_redraw,
         midend_process_key,
         midend_timer,
+        midend_which_preset,
         midend_wants_statusbar,
         midend_solve,
         midend_status,
@@ -78,12 +81,15 @@
         init_game = Module.cwrap('init_game', 'void', ['number', 'number']);
         midend_new_game = Module.cwrap('midend_new_game', 'void', ['number']);
         midend_restart_game = Module.cwrap('midend_restart_game', 'void', ['number']);
+        midend_set_params = Module.cwrap('midend_set_params', 'void', ['number', 'number']);
+        midend_get_params = Module.cwrap('midend_get_params', 'number', ['number']);
         midend_size = Module.cwrap('midend_size', 'void', ['number', 'number', 'number', 'number']);
         midend_redraw = Module.cwrap('midend_redraw', 'void', ['number']);
         midend_force_redraw = Module.cwrap('midend_force_redraw', 'void', ['number']);
         midend_process_key = Module.cwrap('midend_process_key',
             'number', ['number', 'number', 'number', 'number']);
         midend_timer = Module.cwrap('midend_timer', 'void', ['number', 'number']);
+        midend_which_preset = Module.cwrap('midend_which_preset', 'number', ['number']);
         midend_wants_statusbar = Module.cwrap('midend_wants_statusbar', 'number', ['number']);
         midend_solve = Module.cwrap('midend_solve', 'string', ['number']);
         midend_status = Module.cwrap('midend_status', 'number', ['number']);
@@ -105,11 +111,12 @@
         this.$canvas = $('#'+canvas_id);
         this.canvas = this.$canvas.get(0);
         this.$status = $('#'+status_id);
-        this._initEvents();
 
         this.drawing = new Drawing(this.$canvas, this.$status);
 
         init_game(CHandle(this), CHandle(this.drawing));
+
+        this._initEvents();
     }
 
     Frontend.prototype = {
@@ -210,6 +217,46 @@
             setValue(colourptr, rgb[1], type); colourptr += size;
             setValue(colourptr, rgb[2], type);
         },
+
+        //
+        // Presets and Configs
+        //
+
+        add_preset: function(name, paramsptr) {
+            this.presets = this.presets || [];
+            this.presets.push({
+                name: name,
+                value: paramsptr
+            });
+        },
+
+        _buildPresetsMenu: function($menu) {
+            if (!this.presets) {
+                return;
+            }
+            $menu.empty();
+            this.presets.forEach(function(preset) {
+                $('<option>')
+                    .text(preset.name)
+                    .attr('value', preset.value)
+                    .appendTo($menu);
+            });
+
+            var current = midend_which_preset(this.midend);
+            if (current >= 0) {
+                $menu.val(this.presets[current].value);
+            } // else custom config
+        },
+
+        _choosePreset: function(paramsptr) {
+            midend_set_params(this.midend, paramsptr);
+            this.resize();
+            this.newGame();
+        },
+
+        //
+        // Events
+        //
 
         _mouseEvent: function(evt) {
             if (evt.which === 0) {
@@ -329,6 +376,12 @@
 
             $(".keyboard").on('click', 'button', this._virtualKeyboardPress.bind(this));
 
+            var $menu = $('#game_preset_menu');
+            this._buildPresetsMenu($menu);
+            $menu.on('change', function() {
+                this._choosePreset($menu.val());
+            }.bind(this));
+
             // Handle window resize... after it settles down
             var resizeTimer = null,
                 resizeDelay = 200;
@@ -349,6 +402,8 @@
     Module.export_to_c(Frontend.prototype.deactivate_timer, 'deactivate_timer', 'void', ['handle']);
     Module.export_to_c(Frontend.prototype.set_game_info, 'frontend_set_game_info', 'void',
         ['handle', 'number', 'string', 'number', 'number', 'number', 'number', 'number', 'number', 'number']);
+    Module.export_to_c(Frontend.prototype.add_preset, 'frontend_add_preset', 'void',
+        ['handle', 'string', 'number']);
     Module.export_to_c(Frontend.prototype.default_colour, 'frontend_default_colour', 'void',
         ['handle', 'number']);
 
