@@ -50,11 +50,7 @@ void fatal(char *fmt, ...)
     exit(1);
 }
 
-void frontend_default_colour(frontend *fe, float *output)
-{
-    // TODO: pull this from css via js
-    output[0] = output[1]= output[2] = 0.8f;
-}
+extern void frontend_default_colour(frontend *fe, float *output);
 
 
 /*

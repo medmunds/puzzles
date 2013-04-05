@@ -179,6 +179,25 @@
             $("#game_solve").toggle(this.solveable);
         },
 
+        default_colour: function(/* float* */colourptr) {
+            var bgcolor = this.$canvas.css('background-color'),
+                parsed = bgcolor.match(/^rgb\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)$/i),
+                rgb = [0.8, 0.8, 0.8];
+            if (parsed && parsed.length === 4) {
+                parsed.shift(); // pop full match
+                rgb = parsed.map(function(clr) {
+                    return parseInt(clr) / 255.0;
+                });
+            }
+            debug("Background-color:", bgcolor, "RGB:", rgb.join(','));
+            // Write it back to C
+            var type = 'float',
+                size = Runtime.getNativeTypeSize(type);
+            setValue(colourptr, rgb[0], type); colourptr += size;
+            setValue(colourptr, rgb[1], type); colourptr += size;
+            setValue(colourptr, rgb[2], type);
+        },
+
         _mouseEvent: function(evt) {
             if (evt.which === 0) {
                 // mouse moving over canvas with no button down -- game doesn't care
@@ -306,6 +325,8 @@
     Module.export_to_c(Frontend.prototype.get_drawing, 'frontend_get_drawing', 'handle', ['handle']);
     Module.export_to_c(Frontend.prototype.set_game_options, 'frontend_set_game_options', 'void',
         ['handle', 'string', 'number', 'number', 'number', 'number', 'number', 'number', 'number']);
+    Module.export_to_c(Frontend.prototype.default_colour, 'frontend_default_colour', 'void',
+        ['handle', 'number']);
 
     // Exports
 
