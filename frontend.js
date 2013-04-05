@@ -329,7 +329,19 @@
 
             $(".keyboard").on('click', 'button', this._virtualKeyboardPress.bind(this));
 
-            $(window).on('resize', this.resize.bind(this));
+            // Handle window resize... after it settles down
+            var resizeTimer = null,
+                resizeDelay = 200;
+            $(window).on('resize', function() {
+                if (resizeTimer) {
+                    clearTimeout(resizeTimer);
+                    resizeTimer = null;
+                }
+                resizeTimer = setTimeout(function() {
+                    resizeTimer = null;
+                    this.resize();
+                }.bind(this), resizeDelay);
+            }.bind(this));
         }
     };
 
