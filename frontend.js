@@ -120,22 +120,47 @@
     }
 
     Frontend.prototype = {
+
+        //
+        // Controls
+        //
+
         newGame: function() {
             midend_new_game(this.midend);
             midend_redraw(this.midend);
+            this._updateControlState();
         },
         restartGame: function() {
             midend_restart_game(this.midend);
+            this._updateControlState();
         },
         solve: function() {
             midend_solve(this.midend);
+            this._updateControlState();
         },
         undo: function() {
             midend_process_key(this.midend, -1, -1, 'u'.charCodeAt(0));
+            this._updateControlState();
         },
         redo: function() {
             midend_process_key(this.midend, -1, -1, 'r'.charCodeAt(0));
+            this._updateControlState();
         },
+
+        _updateControlState: function() {
+            var canUndo = !!midend_can_undo(this.midend),
+                canRedo = !!midend_can_redo(this.midend),
+                status = midend_status(this.midend);
+
+            $("#game_solve").prop('disabled', (status !== 0));
+            $("#undo").prop('disabled', !canUndo);
+            $("#redo").prop('disabled', !canRedo);
+        },
+
+
+        //
+        //
+        //
 
         resize: function() {
             var $sizeTarget = this.$canvas.parent(),
@@ -282,6 +307,9 @@
             if (evt.shiftKey)
                 button |= MOD_SHFT;
             midend_process_key(this.midend, x, y, button);
+            if (evt.type == "mouseup") {
+                this._updateControlState();
+            }
             return false;
         },
 
@@ -337,6 +365,7 @@
                 evt.preventDefault();
                 retval = false;
             }
+            this._updateControlState();
             return retval;
         },
 
@@ -352,6 +381,7 @@
             }
             if (key) {
                 midend_process_key(this.midend, -1, -1, key);
+                this._updateControlState();
             }
         },
 
