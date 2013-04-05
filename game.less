@@ -47,17 +47,21 @@ header {
 
 .game {
     .well;
-    .well-small; // don't need too much padding, as games tend to have their own
+    .well-small;
+    padding: 5px; // don't need too much padding, as games tend to have their own
+    //text-align: center;
 }
 
 #status {
-    margin-bottom: (@baseLineHeight / 2);
+    margin-bottom: 5px;
+    min-height: @baseLineHeight; // else it shrinks when empty, causing lots of jumping
 }
 
 #gameboard {
     display: block;
-    background-color: @wellBackground;
+    background-color: inherit;
     cursor: default;
+    //margin: 0 auto; // center board
 }
 
 #status, .keyboard {
