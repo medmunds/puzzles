@@ -171,6 +171,7 @@ void game_mkhighlight_specific(frontend *fe, float *ret,
 			       int background, int highlight, int lowlight)
 {
     float max;
+    float hlfactor = 1.2F; /* try for 20% brighter */
     int i;
 
     /*
@@ -181,14 +182,19 @@ void game_mkhighlight_specific(frontend *fe, float *ret,
     for (i = 1; i < 3; i++)
         if (ret[background*3+i] > max)
             max = ret[background*3+i];
-    if (max * 1.2F > 1.0F) {
-        for (i = 0; i < 3; i++)
-            ret[background*3+i] /= (max * 1.2F);
+    if (max * hlfactor > 1.0F) {
+        hlfactor = 1.0 / max; /* or settle for what we can get... */
+        if (hlfactor < 1.04) /* ... but only if it's at least 4% brighter */
+            hlfactor = 1.04;
+        if (max * hlfactor > 1.0F) {
+            for (i = 0; i < 3; i++)
+                ret[background*3+i] /= (max * hlfactor);
+        }
     }
 
     for (i = 0; i < 3; i++) {
 	if (highlight >= 0)
-	    ret[highlight * 3 + i] = ret[background * 3 + i] * 1.2F;
+	    ret[highlight * 3 + i] = ret[background * 3 + i] * hlfactor;
 	if (lowlight >= 0)
 	    ret[lowlight * 3 + i] = ret[background * 3 + i] * 0.8F;
     }
