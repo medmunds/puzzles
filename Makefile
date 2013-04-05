@@ -26,6 +26,11 @@ js:
 $(PUZZLES_SRC)/$(PUZZLES_MAKEFILE): $(PUZZLES_SRC)/mkfiles.pl $(PUZZLES_SRC)/Recipe
 	(cd $(PUZZLES_SRC); ./mkfiles.pl)
 
+# Make a specific puzzle
+puzzle-%:: $(PUZZLES_SRC)/$(PUZZLES_MAKEFILE) css js
+	(cd $(PUZZLES_SRC); make -f $(PUZZLES_MAKEFILE) TOOLPATH=../$(TOOLPATH) BUILDDIR=../$(BUILDDIR) $*)
+
+
 $(BUILDDIR):
 	mkdir -p $(BUILDDIR)
 

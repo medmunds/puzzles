@@ -154,8 +154,6 @@
         'void', ['handle', 'number', 'number', 'number', 'number']);
     Module.export_to_c(Drawing.prototype.status_bar, 'canvas_status_bar',
         'void', ['handle', 'string']);
-    Module.export_to_c(Drawing.prototype.resize, 'canvas_resize',
-        'void', ['handle', 'number', 'number']);
 
     Module.export_to_c(Drawing.prototype.start_draw, 'canvas_start_draw',
         'void', ['handle']);

@@ -57,9 +57,12 @@
     };
 
     // C Imports (can't init until game loaded)
-    var midend_new_game,
+    var init_game,
+        midend_new_game,
         midend_restart_game,
+        midend_size,
         midend_redraw,
+        midend_force_redraw,
         midend_process_key,
         midend_timer,
         midend_wants_statusbar,
@@ -69,12 +72,15 @@
         midend_can_redo;
 
     function initCImports() {
-        if (midend_new_game){
+        if (init_game){
             return;
         }
+        init_game = Module.cwrap('init_game', 'void', ['number', 'number']);
         midend_new_game = Module.cwrap('midend_new_game', 'void', ['number']);
         midend_restart_game = Module.cwrap('midend_restart_game', 'void', ['number']);
+        midend_size = Module.cwrap('midend_size', 'void', ['number', 'number', 'number', 'number']);
         midend_redraw = Module.cwrap('midend_redraw', 'void', ['number']);
+        midend_force_redraw = Module.cwrap('midend_force_redraw', 'void', ['number']);
         midend_process_key = Module.cwrap('midend_process_key',
             'number', ['number', 'number', 'number', 'number']);
         midend_timer = Module.cwrap('midend_timer', 'void', ['number', 'number']);
@@ -83,7 +89,7 @@
         midend_status = Module.cwrap('midend_status', 'number', ['number']);
         midend_can_undo = Module.cwrap('midend_can_undo', 'number', ['number']);
         midend_can_redo = Module.cwrap('midend_can_redo', 'number', ['number']);
-    };
+    }
 
 
     function Frontend(canvas_id, status_id) {
@@ -94,25 +100,19 @@
 
         this.animationId = false;
         this.lastAnimationTime = 0;
-        this.drawing = null;
         this.midend = null;
-
-        this.chandle = CHandle(this);
 
         this.$canvas = $('#'+canvas_id);
         this.canvas = this.$canvas.get(0);
         this.$status = $('#'+status_id);
         this._initEvents();
+
+        this.drawing = new Drawing(this.$canvas, this.$status);
+
+        init_game(CHandle(this), CHandle(this.drawing));
     }
 
     Frontend.prototype = {
-        set_midend: function(midend) {
-            this.midend = midend;
-        },
-        get_midend: function() {
-            return this.midend;
-        },
-
         newGame: function() {
             midend_new_game(this.midend);
             midend_redraw(this.midend);
@@ -128,6 +128,28 @@
         },
         redo: function() {
             midend_process_key(this.midend, -1, -1, 'r'.charCodeAt(0));
+        },
+
+        resize: function() {
+            var $sizeTarget = this.$canvas.parent(),
+                targetW = $sizeTarget.width(),
+                targetH = $sizeTarget.height();
+
+            var type = 'i32',
+                wptr = allocate([targetW], type, ALLOC_STACK),
+                hptr = allocate([targetH], type, ALLOC_STACK);
+            midend_size(this.midend, wptr, hptr, /*usersize=*/true);
+
+            var w = getValue(wptr, type),
+                h = getValue(wptr, type);
+
+            //debug("Target size:", targetW + "x" + targetH,
+            //    "\nNegotized size:", w + "x" + h);
+
+            this.drawing.resize(w, h);
+            // docs say we don't need to force the redraw after midend_size, but seems like we do
+            // midend_redraw(this.midend);
+            midend_force_redraw(this.midend);
         },
 
         activate_timer: function() {
@@ -150,19 +172,11 @@
             midend_timer(this.midend, seconds);
         },
 
-        get_drawing: function() {
-            if (!this.drawing) {
-                this.drawing = new Drawing(this.$canvas, this.$status);
-            }
-            return this.drawing;
-        },
-
-
-        set_game_options: function(name, can_configure, can_solve,
-                                   can_format_as_text_ever,
-                                   wants_statusbar, is_timed,
-                                   require_rbutton, require_numpad)
+        set_game_info: function(
+            midend, name, can_configure, can_solve, can_format_as_text_ever,
+            wants_statusbar, is_timed, require_rbutton, require_numpad)
         {
+            this.midend = midend;
             this.gameName = name;
             this.configurable = !!can_configure;
             this.solveable = !!can_solve;
@@ -189,7 +203,6 @@
                     return parseInt(clr) / 255.0;
                 });
             }
-            debug("Background-color:", bgcolor, "RGB:", rgb.join(','));
             // Write it back to C
             var type = 'float',
                 size = Runtime.getNativeTypeSize(type);
@@ -315,16 +328,15 @@
             $("#redo").click(this.redo.bind(this));
 
             $(".keyboard").on('click', 'button', this._virtualKeyboardPress.bind(this));
+
+            $(window).on('resize', this.resize.bind(this));
         }
     };
 
-    Module.export_to_c(Frontend.prototype.set_midend, 'frontend_set_midend', 'void', ['handle', 'number']);
-    Module.export_to_c(Frontend.prototype.get_midend, 'frontend_get_midend', 'number', ['handle']);
     Module.export_to_c(Frontend.prototype.activate_timer, 'activate_timer', 'void', ['handle']);
     Module.export_to_c(Frontend.prototype.deactivate_timer, 'deactivate_timer', 'void', ['handle']);
-    Module.export_to_c(Frontend.prototype.get_drawing, 'frontend_get_drawing', 'handle', ['handle']);
-    Module.export_to_c(Frontend.prototype.set_game_options, 'frontend_set_game_options', 'void',
-        ['handle', 'string', 'number', 'number', 'number', 'number', 'number', 'number', 'number']);
+    Module.export_to_c(Frontend.prototype.set_game_info, 'frontend_set_game_info', 'void',
+        ['handle', 'number', 'string', 'number', 'number', 'number', 'number', 'number', 'number', 'number']);
     Module.export_to_c(Frontend.prototype.default_colour, 'frontend_default_colour', 'void',
         ['handle', 'number']);
 

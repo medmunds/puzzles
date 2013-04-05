@@ -18,10 +18,6 @@
 #include "puzzles.h"
 
 
-extern void frontend_set_midend(frontend *fe, midend *me);
-extern midend *frontend_get_midend(frontend *fe);
-extern void *frontend_get_drawing(frontend *fe);
-
 /*
  * Mid-end to front-end calls
  * http://www.chiark.greenend.org.uk/~sgtatham/puzzles/devel/midend.html#frontend-api
@@ -59,7 +55,6 @@ extern void frontend_default_colour(frontend *fe, float *output);
  */
 
 extern void canvas_set_palette_entry(void *handle, int index, int r, int g, int b);
-extern void canvas_resize(void *handle, int w, int h);
 
 extern void canvas_status_bar(void *handle, char *text);
 extern void canvas_start_draw(void *handle);
@@ -173,24 +168,6 @@ static int get_config(frontend *fe, int which)
     return fe->cfgret;
 }
 
-#endif /* NOTYET */
-
-static void resize_fe(frontend *fe)
-{
-    // TODO: move this entire thing to JS
-    int w, h;
-    midend *me = frontend_get_midend(fe);
-    void *dhandle = frontend_get_drawing(fe);
-
-    w = INT_MAX;
-    h = INT_MAX;
-    midend_size(me, &w, &h, FALSE);
-    canvas_resize(dhandle, w, h);
-    midend_force_redraw(me);
-}
-
-#ifdef NOTYET
-
 int jcallback_preset_event(int ptr_game_params)
 {
     frontend *fe = (frontend *)_fe;
@@ -237,23 +214,22 @@ int jcallback_about_event()
  * Main
  */
 
-extern void js_add_preset(char *name, game_params *params);
-extern void js_mark_current_preset(int index);
-extern void frontend_set_game_options(frontend *fe,
+extern void frontend_set_game_info(frontend *fe, midend *me,
     const char *name, int can_configure, int can_solve, int can_format_as_text_ever,
     int wants_statusbar, int is_timed, int require_rbutton, int require_numpad);
+extern void frontend_add_preset(char *name, game_params *params);
 
-int init_game(frontend *fe, char *game_id)
+void init_game(frontend *fe, void *dhandle)
 {
     int i, n;
     float* colours;
-    void* dhandle;
     midend* me;
 
-    dhandle = frontend_get_drawing(fe);
+    me = midend_new(fe, &thegame, &canvas_drawing, dhandle);
 
-    frontend_set_game_options(
+    frontend_set_game_info(
         fe,
+        me,
         thegame.name,
         thegame.can_configure,
 	    thegame.can_solve,
@@ -264,23 +240,15 @@ int init_game(frontend *fe, char *game_id)
 	    (thegame.flags & REQUIRE_NUMPAD) == REQUIRE_NUMPAD
 	);
 
-    me = midend_new(fe, &thegame, &canvas_drawing, dhandle);
-    frontend_set_midend(fe, me);
-
-    if (game_id)
-	    midend_game_id(me, game_id);   /* ignore failure */
-    midend_new_game(me);
-
     /*
     if ((n = midend_num_presets(me)) > 0) {
         for (i = 0; i < n; i++) {
             char *name;
             game_params *params;
             midend_fetch_preset(me, i, &name, &params);
-	        js_add_preset(name, params);
+	        frontend_add_preset(name, params);
         }
     }
-    js_mark_current_preset(midend_which_preset(me));
     */
 
     colours = midend_colours(me, &n);
@@ -290,9 +258,4 @@ int init_game(frontend *fe, char *game_id)
 		   (int)(colours[i*3+1] * 0xFF),
 		   (int)(colours[i*3+2] * 0xFF));
     }
-
-    resize_fe(fe);
-
-
-    return 0;
 }

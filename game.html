@@ -146,11 +146,9 @@
 
             var frontend = new Frontend('gameboard', 'status');
             debug_memory_usage("Frontend created");
-            var frontend_handle = CHandle(frontend);
-            debug("Frontend wrapped:", frontend_handle);
 
-            var init_game = Module.cwrap('init_game', 'number', ['number', 'string']);
-            init_game(frontend_handle);
+            frontend.newGame(); // must call before resize
+            frontend.resize();
             debug_memory_usage("Game initialized");
         });
     }
