@@ -184,9 +184,8 @@
             //    "\nNegotized size:", w + "x" + h);
 
             this.drawing.resize(w, h);
-            // docs say we don't need to force the redraw after midend_size, but seems like we do
-            // midend_redraw(this.midend);
-            midend_force_redraw(this.midend);
+            // don't force_redraw here -- not necessary, and can cause big memory mess
+            midend_redraw(this.midend);
         },
 
         activate_timer: function() {
