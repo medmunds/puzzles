@@ -9,7 +9,7 @@ PUZZLES_MAKEFILE = Makefile.emcc
 LIB_JS = \
 	third_party/future/future.js \
 	third_party/excanvas/excanvas.js \
-	third_party/jquery-requestanimationframe/jquery.requestAnimationFrame.js
+	third_party/jquery-requestanimationframe/jquery.requestAnimationFrame.min.js
 
 SRC_JS = cglue.js debug.js drawing.js frontend.js
 SRC_LESS = game.less
