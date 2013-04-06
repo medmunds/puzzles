@@ -126,9 +126,14 @@
         //
 
         newGame: function() {
-            midend_new_game(this.midend);
-            midend_redraw(this.midend);
-            this._updateControlState();
+            var msg = Message('#loading');
+            msg.shown(function() {
+                midend_new_game(this.midend);
+                midend_redraw(this.midend);
+                this._updateControlState();
+                msg.hide();
+            }.bind(this));
+            msg.show();
         },
         restartGame: function() {
             midend_restart_game(this.midend);
@@ -443,3 +448,31 @@
 
 
 })(jQuery, window);
+
+
+var Message = (function($) {
+    "use strict";
+
+    function Message(selector) {
+        var $msg = $(selector),
+            $backdrop = $msg.parent(),
+            shown = function() {};
+
+        return {
+            show: function() {
+                $backdrop.css('display', 'block');
+                $msg.css('display', 'inline-block');
+                setTimeout(shown, 5);
+            },
+            hide: function() {
+                $msg.hide();
+                $backdrop.hide();
+            },
+            shown: function(f) {
+                shown = f;
+            }
+        }
+    }
+
+    return Message;
+})(jQuery);

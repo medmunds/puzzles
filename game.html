@@ -54,6 +54,25 @@
                 <button data-key="0x7F" title="Blank the selected cell">Clear</button>
             </div>
         </menu>
+
+        <div class="message-backdrop" aria-hidden="true">
+            <div class="alert-info message" id="loading" role="alert" tabindex="-1"
+                 aria-labelledby="loading_label">
+                <h4 id="loading_label">Generating game</h4>
+                <p>This could take a bit&hellip;</p>
+            </div>
+            <div class="alert-success message" id="win" role="dialog" tabindex="-1"
+                 aria-labelledby="win_label">
+                <h4 id="win_label">Congratulations</h4>
+                <p>You solved the puzzle</p>
+            </div>
+            <div class="alert-danger message" id="loss" role="dialog" tabindex="-1"
+                 aria-labelledby="loss_label">
+                <h4 id="loss_label">Uh-oh</h4>
+                <p>Looks like you lost</p>
+            </div>
+        </div>
+
     </section>
 
     <section class="help">

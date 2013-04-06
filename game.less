@@ -26,6 +26,10 @@ button {
 // Page Layout
 //
 
+.app {
+    position: relative;
+}
+
 .app .game {
     min-height: 400px;
 }
@@ -95,6 +99,41 @@ header {
     }
 }
 
+
+//
+// Messages
+//
+
+.message-backdrop {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    z-index: @zindexModalBackdrop;
+
+    // background-color: rgba(0, 0, 0, 0.10);
+
+    display: none;
+    text-align: center;
+}
+
+.message {
+    .alert;
+    .alert-block;
+
+    display: none; // will be inline-block when shown
+    text-align: left;
+    position: relative;
+    top: 30%;
+    z-index: @zindexModal;
+
+    &.alert-info { .alert-info; }
+    &.alert-success { .alert-success; }
+    &.alert-danger { .alert-danger; }
+}
 
 //
 // Index Page
