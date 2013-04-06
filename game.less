@@ -3,6 +3,27 @@
 
 @import "bootstrap.less";
 
+// Responsive breakpoints (wide, regular, narrow are matched to Bootstrap)
+
+// Wide: Bootstrap "large desktops"
+@responsiveWideMin:    1200px;
+
+// Regular: Bootstrap default styles ("regular desktops")
+@responsiveRegularMax: (@responsiveWideMin - 1px);
+@responsiveRegularMin: 980px;
+
+// Narrow: Bootstrap "tablets to regular desktops"
+@responsiveNarrowMax:  (@responsiveRegularMin - 1px);
+@responsiveNarrowMin:  768px;
+
+// Small: phones in landscape orientation
+@responsiveSmallMax:   (@responsiveNarrowMin - 1px);
+@responsiveSmallMin:   481px;
+
+// Tiny: phones in portrait orientation
+@responsiveTinyMax:    (@responsiveSmallMin - 1px);
+
+
 
 // Additional reset:
 
@@ -154,7 +175,7 @@ header {
         position: relative;
 
         .box-sizing(border-box);
-        width: 24.75%; // See responsive overrides below
+        width: 24.75%; // Regular layout; see responsive overrides below
         min-height: (@thumbSize + 2*@tilePadding + 2px); // in case description short
 
         margin: (@baseLineHeight/2) -1px;
@@ -199,28 +220,19 @@ header {
             left: @tilePadding;
         }
     }
-}
 
-// Responsive index
-
-@media (min-width: 1200px) {
-    .index li {
-        width: 19.75%;
+    // Responsive index layouts (regular = 4-up, above)
+    @media (min-width: @responsiveWideMin) {
+        li { width: 19.75%; } // wide = 5-up
     }
-}
-@media (min-width: 768px) and (max-width: 979px) {
-    .index li {
-        width: 33%;
+    @media (min-width: @responsiveNarrowMin) and (max-width: @responsiveNarrowMax) {
+        li { width: 33%; } // narrow = 3-up
     }
-}
-@media (max-width: 767px) {
-    .index li {
-        width: 49.5%;
+    @media (min-width: @responsiveSmallMin) and (max-width: @responsiveSmallMax) {
+        li { width: 49.5%; } // small = 2-up
     }
-}
-@media (max-width: 480px) {
-    .index li {
-        width: 100%;
+    @media (max-width: @responsiveTinyMax) {
+        li { width: 100%; } // tiny = 1-up
     }
 }
 
