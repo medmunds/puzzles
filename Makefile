@@ -18,9 +18,9 @@ BUILT_JS = $(addprefix $(BUILDDIR)/, $(SRC_JS))
 BUILT_CSS = $(addprefix $(BUILDDIR)/, $(SRC_LESS:.less=.css))
 
 
-all: puzzles css lib_js js
+all: puzzles index css lib_js js
 
-.PHONY: all puzzles css lib_js js clean
+.PHONY: all puzzles css lib_js js index clean
 
 
 puzzles: $(PUZZLES_SRC)/$(PUZZLES_MAKEFILE)
@@ -29,6 +29,8 @@ puzzles: $(PUZZLES_SRC)/$(PUZZLES_MAKEFILE)
 js: $(BUILT_JS)
 
 css: $(BUILT_CSS)
+
+index: $(BUILDDIR)/index.html
 
 
 $(PUZZLES_SRC)/$(PUZZLES_MAKEFILE): $(PUZZLES_SRC)/mkfiles.pl $(PUZZLES_SRC)/Recipe
@@ -51,6 +53,9 @@ $(BUILDDIR)/%.js : %.js | $(BUILDDIR)
 
 $(BUILDDIR)/%.css : %.less | $(BUILDDIR)
 	$(LESSC) $(LESSFLAGS) $< > $@
+
+$(BUILDDIR)/%.html : puzzles-%.html | $(BUILDDIR)
+	cp $< $@
 
 clean:
 	rm -f $(BUILT_CSS) $(BUILT_JS)

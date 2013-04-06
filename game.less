@@ -1,3 +1,6 @@
+/*! Puzzles-html stylesheet
+ */
+
 @import "third_party/bootstrap/less/bootstrap.less";
 @import "third_party/bootstrap/less/responsive.less";
 
@@ -6,6 +9,10 @@
 menu {
     padding: 0;
     margin: 0;
+}
+
+template {
+    display: none;
 }
 
 // Style basic (semantic) elements:
@@ -87,6 +94,97 @@ header {
         margin: 0.5em;
     }
 }
+
+
+//
+// Index Page
+//
+
+.index {
+    @thumbSize: 75px;
+    @tilePadding: (@gridGutterWidth/2);
+
+    ul {
+        margin: 0 (-@tilePadding);
+        list-style: none;
+        .clearfix();
+    }
+    li {
+        display: inline-block;
+        vertical-align: top;
+        position: relative;
+
+        .box-sizing(border-box);
+        width: 24.75%; // See responsive overrides below
+        min-height: (@thumbSize + 2*@tilePadding + 2px); // in case description short
+
+        margin: (@baseLineHeight/2) -1px;
+        line-height: @baseLineHeight;
+        padding: @tilePadding @tilePadding @tilePadding (@tilePadding + @thumbSize + @tilePadding);
+
+        border: 1px solid transparent;
+        .border-radius(@baseBorderRadius);
+
+        h3, h4 {
+            margin-top: 0;
+        }
+        p {
+            margin: 10px 0 0;
+        }
+
+        // Entire LI contents are wrapped in an A; make the LI behave like the A
+        > a {
+            display: block;
+            color: inherit;
+        }
+        > a:hover {
+            text-decoration: inherit;
+        }
+        h3, h4 {
+            color: @linkColor;
+        }
+        &:hover {
+            border-color: @linkColor;
+            h3, h4 {
+                color: @linkColorHover;
+                text-decoration: underline;
+            }
+        }
+
+        // Thumbnail images
+        img {
+            display: block;
+            max-width: @thumbSize;
+            position: absolute;
+            top: @tilePadding;
+            left: @tilePadding;
+        }
+    }
+}
+
+// Responsive index
+
+@media (min-width: 1200px) {
+    .index li {
+        width: 19.75%;
+    }
+}
+@media (min-width: 768px) and (max-width: 979px) {
+    .index li {
+        width: 33%;
+    }
+}
+@media (max-width: 767px) {
+    .index li {
+        width: 49.5%;
+    }
+}
+@media (max-width: 480px) {
+    .index li {
+        width: 100%;
+    }
+}
+
 
 
 //
