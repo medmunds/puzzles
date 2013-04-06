@@ -1,0 +1,4 @@
+future.js -- polyfills for ECMAScript 5 features
+
+Implementations are from MDN, and are either under the MIT License or in the public domain.
+See https://developer.mozilla.org/en-US/docs/Project:MDN/About#Copyrights_and_licenses
