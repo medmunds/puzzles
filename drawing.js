@@ -26,6 +26,7 @@
         this.$canvas = $(canvas);
         this.context = this.$canvas[0].getContext("2d");
         this.palette = [];
+        this.fontInfo = this.$canvas.css(['font-family', 'font-weight', 'font-style']);
 
         this.$status = $(status);
 
@@ -67,9 +68,13 @@
         draw_text: function(x, y, fonttype, fontsize, align, colour, text) {
             var valign = (align & ALIGN_VCENTRE) == ALIGN_VCENTRE ? "middle" : "alphabetic",
                 halign = (align & ALIGN_HCENTRE) == ALIGN_HCENTRE ? "center"
-                    : ((align & ALIGN_HRIGHT) == ALIGN_HRIGHT ? "right" : "left"),
-                fontfamily = (fonttype == FONT_VARIABLE) ? "Arial" : "fixed";
-            this.context.font = "bold " + fontsize + "px " + fontfamily;
+                    : ((align & ALIGN_HRIGHT) == ALIGN_HRIGHT ? "right" : "left");
+            this.context.font = [
+                this.fontInfo['font-style'],
+                this.fontInfo['font-weight'],
+                fontsize + 'px',
+                (fonttype == FONT_VARIABLE) ? this.fontInfo['font-family'] : "fixed"
+            ].join(" ");
             this.context.textBaseline = valign;
             this.context.textAlign = halign;
             this.context.fillStyle = this.palette[colour];
