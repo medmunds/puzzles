@@ -148,9 +148,11 @@
             var frontend = new Frontend('gameboard', 'status');
             debug_memory_usage("Frontend created");
 
-            frontend.newGame(); // must call before resize
-            frontend.resize();
-            debug_memory_usage("Game initialized");
+            setTimeout(function() {
+                frontend.newGame(); // must call before resize
+                frontend.resize();
+                debug_memory_usage("Game initialized");
+            }, 0);
         });
     }
 </script>
