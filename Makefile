@@ -6,40 +6,52 @@ LESSFLAGS :=
 PUZZLES_SRC = ./puzzles
 PUZZLES_MAKEFILE = Makefile.emcc
 
+LIB_JS = \
+	third_party/future/future.js \
+	third_party/excanvas/excanvas.js \
+	third_party/jquery-requestanimationframe/jquery.requestAnimationFrame.js
 
-all: puzzles css js
+SRC_JS = cglue.js debug.js drawing.js frontend.js
+SRC_LESS = game.less
 
-.PHONY: all puzzles css js clean
+BUILT_JS = $(addprefix $(BUILDDIR)/, $(SRC_JS))
+BUILT_CSS = $(addprefix $(BUILDDIR)/, $(SRC_LESS:.less=.css))
+
+
+all: puzzles css lib_js js
+
+.PHONY: all puzzles css lib_js js clean
 
 
 puzzles: $(PUZZLES_SRC)/$(PUZZLES_MAKEFILE)
-	(cd $(PUZZLES_SRC); make -f $(PUZZLES_MAKEFILE) TOOLPATH=../$(TOOLPATH) BUILDDIR=../$(BUILDDIR))
+	cd $(PUZZLES_SRC) && $(MAKE) -f $(PUZZLES_MAKEFILE) TOOLPATH=../$(TOOLPATH) BUILDDIR=../$(BUILDDIR)
 
-css: $(BUILDDIR)/game.css
+js: $(BUILT_JS)
 
-$(BUILDDIR)/game.css: game.less
-
-js:
-#js: $(addprefix $(BUILDDIR)/, $(wildcard *.js))
+css: $(BUILT_CSS)
 
 
 $(PUZZLES_SRC)/$(PUZZLES_MAKEFILE): $(PUZZLES_SRC)/mkfiles.pl $(PUZZLES_SRC)/Recipe
-	(cd $(PUZZLES_SRC); ./mkfiles.pl)
+	cd $(PUZZLES_SRC) && ./mkfiles.pl
 
 # Make a specific puzzle
-puzzle-%:: $(PUZZLES_SRC)/$(PUZZLES_MAKEFILE) css js
-	(cd $(PUZZLES_SRC); make -f $(PUZZLES_MAKEFILE) TOOLPATH=../$(TOOLPATH) BUILDDIR=../$(BUILDDIR) $*)
+puzzle-%:: $(PUZZLES_SRC)/$(PUZZLES_MAKEFILE) css lib_js js
+	cd $(PUZZLES_SRC) && $(MAKE) -f $(PUZZLES_MAKEFILE) TOOLPATH=../$(TOOLPATH) BUILDDIR=../$(BUILDDIR) $*
 
 
-$(BUILDDIR):
+lib_js: $(LIB_JS) | $(BUILDDIR)
+	mkdir -p $(BUILDDIR)/lib
+	cp $(LIB_JS) $(BUILDDIR)/lib/
+
+$(BUILDDIR) :
 	mkdir -p $(BUILDDIR)
 
-$(BUILDDIR)/%.js: | %(BUILDDIR) %.js
-	(cd $(BUILDDIR); ln -s ../%< .)
+$(BUILDDIR)/%.js : %.js | $(BUILDDIR)
+	cp $< $@
 
-$(BUILDDIR)/%.css: %.less | $(BUILDDIR)
+$(BUILDDIR)/%.css : %.less | $(BUILDDIR)
 	$(LESSC) $(LESSFLAGS) $< > $@
 
 clean:
-	rm $(BUILDDIR)/*.css
-	(cd $(PUZZLES_SRC); make -f $(PUZZLES_MAKEFILE) clean)
+	rm -f $(BUILT_CSS) $(BUILT_JS)
+	cd $(PUZZLES_SRC) && $(MAKE) -f $(PUZZLES_MAKEFILE) clean
