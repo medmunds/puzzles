@@ -18,7 +18,7 @@ BUILT_JS = $(addprefix $(BUILDDIR)/, $(SRC_JS))
 BUILT_CSS = $(addprefix $(BUILDDIR)/, $(SRC_LESS:.less=.css))
 
 
-all: puzzles index css lib_js js
+all: index css lib_js js puzzles
 
 .PHONY: all puzzles css lib_js js index clean
 

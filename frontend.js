@@ -114,6 +114,9 @@
 
         this.drawing = new Drawing(this.$canvas, this.$status);
 
+        this._newGameCalled = false; // interlock for midend_set_size
+        this._pendingResize = true; // want to compute size the first time we create a game
+
         init_game(CHandle(this), CHandle(this.drawing));
 
         this._initEvents();
@@ -129,6 +132,10 @@
             var msg = Message('#loading');
             msg.shown(function() {
                 midend_new_game(this.midend);
+                this._newGameCalled = true;
+                if (this._pendingResize) {
+                    this.resize();
+                }
                 midend_redraw(this.midend);
                 this._updateControlState();
                 msg.hide();
@@ -204,7 +211,14 @@
             if (this._inResize) {
                 debug("Avoiding reentrant frontend.resize");
             }
+            if (!this._newGameCalled) {
+                // Can't midend_size until after midend_new_game
+                this._pendingResize = true;
+                return;
+            }
             this._inResize = true;
+            this._pendingResize = false;
+
             var target = this._calcMaxCanvasSize();
 
             //console.log("Target size: " + target.width + "x" + target.height);

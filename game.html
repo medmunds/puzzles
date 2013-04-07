@@ -165,9 +165,9 @@
             var frontend = new Frontend('gameboard', 'status');
             //debug_memory_usage("Frontend created");
 
+            // Wait for a browser repaint before generating the new game
             setTimeout(function() {
-                frontend.newGame(); // must call before resize
-                frontend.resize();
+                frontend.newGame();
                 //debug_memory_usage("Game initialized");
             }, 0);
         });
