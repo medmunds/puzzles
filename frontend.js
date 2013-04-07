@@ -331,7 +331,7 @@
 
         _choosePreset: function(paramsptr) {
             midend_set_params(this.midend, paramsptr);
-            this.resize();
+            this._pendingResize = true;
             this.newGame();
         },
 
@@ -465,7 +465,13 @@
             var $menu = $('#game_preset_menu');
             this._buildPresetsMenu($menu);
             $menu.on('change', function() {
-                this._choosePreset($menu.val());
+                var val = $menu.val();
+                // Let the browser finish closing the menu before
+                // taking the time to generate the new game
+                // (helps on iPad)
+                setTimeout(function() {
+                    this._choosePreset(val);
+                }.bind(this), 100);
             }.bind(this));
 
             // Handle window resize... after it settles down
@@ -513,7 +519,7 @@ var Message = (function($) {
             show: function() {
                 $backdrop.css('display', 'block');
                 $msg.css('display', 'inline-block');
-                setTimeout(shown, 5);
+                setTimeout(shown, 100);
             },
             hide: function() {
                 $msg.hide();
