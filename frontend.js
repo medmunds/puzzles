@@ -470,7 +470,7 @@
                 // taking the time to generate the new game
                 // (helps on iPad)
                 setTimeout(function() {
-                    this._choosePreset(val);
+                    this._choosePreset(Number(val));
                 }.bind(this), 100);
             }.bind(this));
 
