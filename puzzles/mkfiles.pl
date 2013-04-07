@@ -1616,6 +1616,7 @@ if (defined $makefiles{'emcc'}) {
 	"C_EXPORT_LIST := ../c_exports.json\n".
 	&splitline("LDFLAGS := -O2 --pre-js ../pre_js.js --post-js ../post_js.js ".
 	    "-s TOTAL_MEMORY=0xC0000 -s FAST_MEMORY=0xC0000 -s TOTAL_STACK=0x10000 ".
+	    "-s ALLOW_MEMORY_GROWTH=1 ".
 	    "-s EXPORTED_FUNCTIONS=\"`cat \$(C_EXPORT_LIST)`\"")."\n".
     "BUILDDIR := ../build\n".
     "HTMLTMPL := ../game.html\n".
