@@ -10,7 +10,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="game.css" rel="stylesheet">
 </head>
-<body>
+<body class="puzzle">
 <div class="container">
 
     <header>
@@ -21,12 +21,16 @@
     <section class="app">
 
         <menu class="control" type="toolbar">
-            <select id="game_preset_menu"></select>
-            <button id="game_new" title="New game">New</button>
-            <button id="game_restart" title="Reset this game to the beginning">Restart</button>
-            <button id="game_solve" title="Show solution">Solve</button>
-            <button id="undo" title="Reverse your last move">Undo</button>
-            <button id="redo">Redo</button>
+            <div class="buttongroup">
+                <select id="game_preset_menu"></select>
+                <button id="game_new" title="New game">New</button>
+                <button id="game_restart" title="Reset this game to the beginning">Restart</button>
+                <button id="game_solve" title="Show solution">Solve</button>
+            </div>
+            <div class="buttongroup">
+                <button id="undo" title="Reverse your last move">Undo</button>
+                <button id="redo">Redo</button>
+            </div>
         </menu>
 
         <div class="game">

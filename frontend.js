@@ -167,21 +167,53 @@
         //
         //
 
+        _calcMaxCanvasSize: function() {
+            var $app = $('.app'),
+                $game = this.$canvas.parent(),
+                $keyboard = $(".keyboard");
+
+            var gameBorder = $game.outerWidth(true) - $game.width(),
+                availableWidth = $app.width() - gameBorder;
+
+            //availableWidth -= 32; // in case we pick up a vertical scrollbar
+            var minWidth = parseInt(this.$canvas.css('min-width'));
+            if (minWidth) {
+                availableWidth = Math.max(minWidth, availableWidth);
+            }
+
+            var windowHeight = $(window).height(),
+                appBottom = $app.offset().top + $app.outerHeight(true), // in page coords, including margin
+                availableHeight = windowHeight - appBottom; // reserve space for the whole app (and above)
+
+            availableHeight += this.$canvas.height(); // what canvas is currently using is available
+            if (!this.hasStatusBar && this.$status.is(":visible")) { // e.g., during initial load
+                availableHeight += this.$status.outerHeight();
+            }
+            if (!this.usesNumpad && $keyboard.is(":visible")) {
+                availableHeight += $keyboard.outerHeight(); // e.g., during initial load
+            }
+            var minHeight = parseInt(this.$canvas.css('min-height'));
+            if (minHeight) {
+                availableHeight = Math.max(minHeight, availableHeight);
+            }
+
+            return { width: availableWidth, height: availableHeight };
+        },
+
         resize: function() {
-            var $sizeTarget = this.$canvas.parent(),
-                targetW = $sizeTarget.width(),
-                targetH = $sizeTarget.height();
+            var target = this._calcMaxCanvasSize();
+
+            //console.log("Target size: " + target.width + "x" + target.height);
 
             var type = 'i32',
-                wptr = allocate([targetW], type, ALLOC_STACK),
-                hptr = allocate([targetH], type, ALLOC_STACK);
+                wptr = allocate([target.width], type, ALLOC_STACK),
+                hptr = allocate([target.height], type, ALLOC_STACK);
             midend_size(this.midend, wptr, hptr, /*usersize=*/true);
 
             var w = getValue(wptr, type),
-                h = getValue(wptr, type);
+                h = getValue(hptr, type);
 
-            //debug("Target size:", targetW + "x" + targetH,
-            //    "\nNegotized size:", w + "x" + h);
+            //console.log("Negotized size: " + w + "x" + h);
 
             this.drawing.resize(w, h);
             // don't force_redraw here -- not necessary, and can cause big memory mess

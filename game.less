@@ -51,10 +51,6 @@ button {
     position: relative;
 }
 
-.app .game {
-    min-height: 400px;
-}
-
 section, .game {
     margin: @baseLineHeight 0;
 }
@@ -85,7 +81,8 @@ header {
     .well;
     .well-small;
     padding: 5px; // don't need too much padding, as games tend to have their own
-    //text-align: center;
+    text-align: center;
+    display: inline-block;
 }
 
 #status {
@@ -98,6 +95,9 @@ header {
     background-color: inherit;
     cursor: default;
     font-weight: bold;
+
+    min-width: 200px;
+    min-height: 200px;
 }
 
 .control select {
@@ -105,18 +105,20 @@ header {
     margin-bottom: 0;
 }
 
-#status, .keyboard {
-    // Hide these items unless/until the game want them
-    display: none;
+menu {
+    @groupSpacing: 0.5em;
+
+    margin: (-@groupSpacing);
+
+    .buttongroup {
+        display: inline-block;
+        margin: @groupSpacing;
+    }
 }
 
 .keyboard {
     button {
         .btn-large;
-    }
-
-    .buttongroup {
-        margin: 0.5em;
     }
 }
 
@@ -160,7 +162,7 @@ header {
 // Index Page
 //
 
-.index {
+body.index {
     @thumbSize: 75px;
     @tilePadding: (@gridGutterWidth/2);
 
@@ -243,6 +245,7 @@ header {
 //
 
 .debug {
+    //display: none;
     margin: (2 * @baseLineHeight) 0 0;
     padding-top: ((@baseLineHeight / 2) - 1);
     border-top: 1px solid @grayLight;
