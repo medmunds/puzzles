@@ -30,7 +30,7 @@
 
         this.$status = $(status);
 
-        this.qx = this.qy = 0.5; // adjust lines onto pixels
+        this.qx = this.qy = 0; // adjust lines onto pixels, if necessary
         this.defaultLineWidth = 1;
     }
 
@@ -73,7 +73,7 @@
                 this.fontInfo['font-style'],
                 this.fontInfo['font-weight'],
                 fontsize + 'px',
-                (fonttype == FONT_VARIABLE) ? this.fontInfo['font-family'] : "fixed"
+                (fonttype == FONT_VARIABLE) ? this.fontInfo['font-family'] : "monospace"
             ].join(" ");
             this.context.textBaseline = valign;
             this.context.textAlign = halign;
