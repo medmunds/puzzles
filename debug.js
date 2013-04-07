@@ -12,7 +12,6 @@ var debug;
         p.appendChild(t);
         logEl.appendChild(p);
     };
-    debug("Debug Log Ready");
 
     if (typeof window !== 'undefined') {
         // Useful for seeing JS errors on mobile browsers

@@ -125,8 +125,6 @@
 <script src="frontend.js"></script>
 <script src="drawing.js"></script>
 <script>
-    debug("Before loading gamescript, _activate_timer is", typeof _activate_timer);
-
     // Load the correct version of game.js for this browser.
     // (Safari 5 mobile doesn't support Float64Array;
     // Android, IE, etc. don't support any typed arrays.
@@ -144,8 +142,6 @@
 
     function game_script_loaded() {
         jQuery(function($) { // once the DOM is ready (perhaps immediately)...
-            debug("In onready, _activate_timer is", typeof _activate_timer);
-
             var debug_memory_usage;
             if (typeof MAX_STACK_USED !== 'undefined') {
                 debug_memory_usage = function(where) {
@@ -166,15 +162,13 @@
             }
 
 
-            debug("Creating Frontend...");
-
             var frontend = new Frontend('gameboard', 'status');
-            debug_memory_usage("Frontend created");
+            //debug_memory_usage("Frontend created");
 
             setTimeout(function() {
                 frontend.newGame(); // must call before resize
                 frontend.resize();
-                debug_memory_usage("Game initialized");
+                //debug_memory_usage("Game initialized");
             }, 0);
         });
     }
