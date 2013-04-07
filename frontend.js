@@ -201,6 +201,10 @@
         },
 
         resize: function() {
+            if (this._inResize) {
+                debug("Avoiding reentrant frontend.resize");
+            }
+            this._inResize = true;
             var target = this._calcMaxCanvasSize();
 
             //console.log("Target size: " + target.width + "x" + target.height);
@@ -218,6 +222,8 @@
             this.drawing.resize(w, h);
             // don't force_redraw here -- not necessary, and can cause big memory mess
             midend_redraw(this.midend);
+
+            this._inResize = false;
         },
 
         activate_timer: function() {
@@ -330,7 +336,7 @@
             if (x === undefined || evt.target !== this.canvas) {
                 // Firefox doesn't supply offsetX,Y
                 // IE does, but they're relative to excanvas's VML shapes (rather than the canvas)
-                if (evt.type === "mousedown") {
+                if (evt.type === "mousedown" || !this.canvasOffset) {
                     // Cache offset for duration of mouse drag sequence
                     this.canvasOffset = this.$canvas.offset();
                 }
