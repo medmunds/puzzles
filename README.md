@@ -1,5 +1,7 @@
-Puzzles-HTML
+Puzzles HTML
 ============
+
+[Play the puzzles here](http://medmunds.github.io/puzzles/)
 
 **Work In Progress**
 
@@ -14,4 +16,4 @@ Puzzles are known to run on:
 * Internet Explorer 9 (and later, presumably)
 * Internet Explorer 8 (albeit slowly)
 * iPad (tested on iPad 1 with Safari 5)
-* Android 3.2
+* Android 2.3
