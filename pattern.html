@@ -1,0 +1,177 @@
+<!doctype html>
+<!-- Template html file -->
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>pattern</title>
+    <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.6.2/html5shiv.js"></script>
+    <![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="game.css" rel="stylesheet">
+</head>
+<body class="puzzle">
+<div class="container">
+
+    <header>
+        <h1>pattern</h1>
+        <span class="subtitle">from Simon Tatham's portable puzzle collection</span>
+    </header>
+
+    <section class="app">
+
+        <menu class="control" type="toolbar">
+            <div class="buttongroup">
+                <select id="game_preset_menu"></select>
+                <button id="game_new" title="New game">New</button>
+                <button id="game_restart" title="Reset this game to the beginning">Restart</button>
+                <button id="game_solve" title="Show solution">Solve</button>
+            </div>
+            <div class="buttongroup">
+                <button id="undo" title="Reverse your last move">Undo</button>
+                <button id="redo">Redo</button>
+            </div>
+        </menu>
+
+        <div class="game">
+            <div id="status"></div>
+            <canvas id="gameboard"></canvas>
+        </div>
+
+        <menu class="keyboard" type="toolbar">
+            <div class="buttongroup">
+                <button>1</button>
+                <button>2</button>
+                <button>3</button>
+                <button>4</button>
+                <button>5</button>
+            </div>
+            <div class="buttongroup">
+                <button>6</button>
+                <button>7</button>
+                <button>8</button>
+                <button>9</button>
+                <button>0</button>
+            </div>
+            <div class="buttongroup">
+                <button data-key="0x0D" title="Toggle pen/pencil mode">Pencil</button>
+                <button data-key="0x7F" title="Blank the selected cell">Clear</button>
+            </div>
+        </menu>
+
+        <div class="message-backdrop" aria-hidden="true">
+            <div class="alert-info message" id="loading" role="alert" tabindex="-1"
+                 aria-labelledby="loading_label">
+                <h4 id="loading_label">Generating game</h4>
+                <p>This could take a bit&hellip;</p>
+            </div>
+            <div class="alert-success message" id="win" role="dialog" tabindex="-1"
+                 aria-labelledby="win_label">
+                <h4 id="win_label">Congratulations</h4>
+                <p>You solved the puzzle</p>
+            </div>
+            <div class="alert-danger message" id="loss" role="dialog" tabindex="-1"
+                 aria-labelledby="loss_label">
+                <h4 id="loss_label">Uh-oh</h4>
+                <p>Looks like you lost</p>
+            </div>
+        </div>
+
+    </section>
+
+    <section class="help">
+        <!-- Add some {{SHORT_HELP_TEXT}} here -->
+        <p>See the
+            <a class="docs"
+               href="http://www.chiark.greenend.org.uk/~sgtatham/puzzles/doc/pattern.html"
+               target="puzzle_docs">full instructions</a></p>
+    </section>
+
+    <section class="debug">
+        <div id="memdebug">
+            <div>
+                <span class="title">Stack</span>
+                <span class="meter" id="stack_usage"></span>
+            </div>
+            <div>
+                <span class="title">Static</span>
+                <span class="meter" id="static_usage"></span>
+            </div>
+        </div>
+
+        <div id="debug"></div>
+    </section>
+
+</div>
+
+
+<script src="debug.js"></script>
+<script src="lib/future.js"></script>
+
+<!--[if lt IE 9]>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script src="lib/excanvas.js"></script>
+<![endif]-->
+<!--[if gte IE 9]><!-->
+<script src="http://code.jquery.com/jquery-2.0.0b2.min.js"></script>
+<!--<![endif]-->
+<script>
+    Module = {};
+    Module['noInitialRun'] = true;
+    Module['noExitRuntime'] = true;
+</script>
+<script src="lib/jquery.requestAnimationFrame.min.js"></script>
+<script src="cglue.js"></script>
+<script src="frontend.js"></script>
+<script src="drawing.js"></script>
+<script>
+    // Load the correct version of game.js for this browser.
+    // (Safari 5 mobile doesn't support Float64Array;
+    // Android, IE, etc. don't support any typed arrays.
+    // Chrome and Firefox run significantly faster with typed arrays.)
+    (function() {
+        var supportsTypedArrays = (typeof Float64Array !== 'undefined'),
+            gameSrc = "pattern" + (supportsTypedArrays ? ".fast.js" : ".js"),
+            script = document.createElement('script'),
+            head = document.getElementsByTagName('head')[0];
+        debug("Loading game from", gameSrc);
+        script.src = gameSrc;
+        head.appendChild(script);
+        // The final line of gameSrc calls game_script_loaded() in the global namespace
+    })();
+
+    function game_script_loaded() {
+        jQuery(function($) { // once the DOM is ready (perhaps immediately)...
+            var debug_memory_usage;
+            if (typeof MAX_STACK_USED !== 'undefined') {
+                debug_memory_usage = function(where) {
+                    debug(where,
+                        "\nMax stack:", "0x"+MAX_STACK_USED.toString(16),
+                        "Max static:", "0x"+MAX_STATIC_USED.toString(16))
+                };
+                Meter('#stack_usage', STACK_MAX - STACK_ROOT, function() {
+                    return { current: STACKTOP - STACK_ROOT, peak: MAX_STACK_USED };
+                });
+                Meter('#static_usage', TOTAL_MEMORY - STACK_MAX, function () {
+                    return { current: STATICTOP - STACK_MAX, peak: MAX_STATIC_USED };
+                });
+
+            } else {
+                $("#memdebug").hide();
+                debug_memory_usage = debug;
+            }
+
+
+            var frontend = new Frontend('gameboard', 'status');
+            //debug_memory_usage("Frontend created");
+
+            // Wait for a browser repaint before generating the new game
+            setTimeout(function() {
+                frontend.newGame();
+                //debug_memory_usage("Game initialized");
+            }, 0);
+        });
+    }
+</script>
+</body>
+</html>

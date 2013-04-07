@@ -1,0 +1,151 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Puzzles</title>
+    <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.6.2/html5shiv.js"></script>
+    <![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="game.css" rel="stylesheet">
+</head>
+<body class="index">
+<div class="container">
+
+    <header>
+        <h1>Puzzles</h1>
+        <span class="subtitle">from Simon Tatham's portable puzzle collection</span>
+    </header>
+
+    <section>
+        <p>Play in any modern web browser
+            (even tablets and phones&mdash;no plugins required)</p>
+    </section>
+
+    <div id="puzzle_list"></div>
+
+</div>
+
+<template id="category_template">
+    <section>
+        <h2>{{NAME}}&hellip;</h2>
+        <!-- <p>{{DESCRIPTION}}</p> -->
+        <ul>
+            {{PUZZLES}}
+        </ul>
+    </section>
+</template>
+
+<template id="all_template">
+    <section>
+        <ul>
+            {{PUZZLES}}
+        </ul>
+    </section>
+</template>
+
+<template id="puzzle_template">
+    <li><a href="{{SLUG}}.html"><img alt="{{NAME}} screenshot" src="img/{{SLUG}}-ibase.png">
+        <h4>{{NAME}}</h4>
+        <p>{{DESCRIPTION}}</p>
+    </a></li>
+</template>
+
+<script src="lib/future.js"></script>
+<!--[if lt IE 9]>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<![endif]-->
+<!--[if gte IE 9]><!-->
+<script src="http://code.jquery.com/jquery-2.0.0b2.min.js"></script>
+<!--<![endif]-->
+
+<script>
+    jQuery(function($) {
+        var puzzles = [
+            { slug: 'blackbox', name: 'Blackbox', category: 'Find the hidden', description: 'Find the hidden balls in the box by bouncing laser beams off them.' },
+            { slug: 'bridges', name: 'Bridges', category: 'Connect', description: 'Connect all the islands with a network of bridges.' },
+            { slug: 'cube', name: 'Cube', category: 'Clear the board', description: 'Pick up all the blue squares by rolling the cube over them.' },
+            { slug: 'dominosa', name: 'Dominosa', category: 'Fill the grid', description: 'Tile the rectangle with a full set of dominoes.' },
+            { slug: 'fifteen', name: 'Fifteen', category: 'Sort', description: 'Slide the tiles around to arrange them into order.' },
+            { slug: 'filling', name: 'Filling', category: 'Fill the grid', description: 'Mark every square with the area of its containing region.' },
+            { slug: 'flip', name: 'Flip', category: 'Clear the board', description: 'Flip groups of squares to light them all up at once.' },
+            { slug: 'galaxies', name: 'Galaxies', category: 'Fill the grid', description: 'Divide the grid into rotationally symmetric regions each centered on a dot.' },
+            { slug: 'guess', name: 'Guess', category: 'Find the hidden', description: 'Guess the hidden combination of colors.' },
+            { slug: 'inertia', name: 'Inertia', category: 'Find the path', description: 'Collect all the gems without running into any of the mines.' },
+            { slug: 'keen', name: 'Keen', category: 'Latin square', description: 'Complete the latin square in accordance with the arithmetic clues.' },
+            { slug: 'lightup', name: 'Light Up', category: 'Place', description: 'Place bulbs to light up all the squares.' },
+            { slug: 'loopy', name: 'Loopy', category: 'Find the path', description: 'Draw a single closed loop, given clues about number of adjacent edges.' },
+            { slug: 'magnets', name: 'Magnets', category: 'Fill the grid', description: 'Place magnets to satisfy the clues and avoid like poles touching.' },
+            { slug: 'map', name: 'Map', category: 'Place', description: 'Color the map so that adjacent regions are never the same color.' },
+            { slug: 'mines', name: 'Mines', category: 'Find the hidden', description: 'Find all the mines without treading on any of them.' },
+            { slug: 'net', name: 'Net', category: 'Connect', description: 'Rotate each tile to reassemble the network.' },
+            { slug: 'netslide', name: 'Netslide', category: 'Connect', description: 'Slide a row at a time to reassemble the network.' },
+            { slug: 'pattern', name: 'Pattern', category: 'Fill the grid', description: 'Fill in the pattern in the grid, given only the lengths of runs of black squares.' },
+            { slug: 'pearl', name: 'Pearl', category: 'Find the path', description: 'Draw a single closed loop, given clues about corner and straight squares.' },
+            { slug: 'pegs', name: 'Pegs', category: 'Clear the board', description: 'Jump pegs over each other to remove all but one.' },
+            { slug: 'range', name: 'Range', category: 'Place', description: 'Place black squares to limit the visible distance from each numbered cell.' },
+            { slug: 'rect', name: 'Rect', category: 'Fill the grid', description: 'Divide the grid into rectangles with areas equal to the numbers.' },
+            { slug: 'samegame', name: 'Same Game', category: 'Clear the board', description: 'Clear the grid by removing touching groups of the same color squares.' },
+            { slug: 'signpost', name: 'Signpost', category: 'Find the path', description: 'Connect the squares into a path following the arrows.' },
+            { slug: 'singles', name: 'Singles', category: 'Place', description: 'Black out the right set of duplicate numbers.' },
+            { slug: 'sixteen', name: 'Sixteen', category: 'Sort', description: 'Slide a row at a time to arrange the tiles into order.' },
+            { slug: 'slant', name: 'Slant', category: 'Place', description: 'Draw a maze of slanting lines that matches the clues.' },
+            { slug: 'solo', name: 'Solo', category: 'Latin square', description: 'Fill in the grid so that each row, column and square block contains one of every digit.' },
+            { slug: 'tents', name: 'Tents', category: 'Place', description: 'Place a tent next to each tree.' },
+            { slug: 'towers', name: 'Towers', category: 'Latin square', description: 'Complete the latin square of towers in accordance with the clues.' },
+            { slug: 'twiddle', name: 'Twiddle', category: 'Sort', description: 'Rotate the tiles around themselves to arrange them into order.' },
+            { slug: 'undead', name: 'Undead', category: 'Place', description: 'Place ghosts, vampires and zombies so that the right numbers of them can be seen in mirrors.' },
+            { slug: 'unequal', name: 'Unequal', category: 'Latin square', description: 'Complete the latin square in accordance with the &gt; signs.' },
+            { slug: 'unruly', name: 'Unruly', category: 'Fill the grid', description: 'Fill in the black and white grid to avoid runs of three.' },
+            { slug: 'untangle', name: 'Untangle', category: 'Sort', description: 'Reposition the points so that the lines do not cross.' }
+        ];
+
+        function substitute(str, substitutions) {
+            // Simple {{VARIABLE}} substitution.
+            // We control the input, so not worried about escaping, etc.
+            return str.replace(/{{(\w+)}}/g, function(match, p1) {
+                return substitutions[p1.toLowerCase()] || match;
+            });
+        }
+
+        var categorized = false,
+            puzzleTmpl = $('#puzzle_template').html(),
+            html = "";
+
+        if (categorized) {
+            var categoryTmpl = $('#category_template').html(),
+                categories = {};
+            puzzles.forEach(function(puzzle) {
+                var cat = puzzle.category;
+                categories[cat] = categories[cat] || [];
+                categories[cat].push(puzzle);
+            });
+
+            var categoryNames = Object.keys(categories).sort();
+            categoryNames.forEach(function(categoryName) {
+                var categoryPuzzles = categories[categoryName],
+                    puzzlesHtml = "";
+                categoryPuzzles.forEach(function(puzzle) {
+                    puzzlesHtml += substitute(puzzleTmpl, puzzle);
+                });
+                html += substitute(categoryTmpl, {
+                    'name': categoryName,
+                    'puzzles': puzzlesHtml
+                });
+            });
+        } else {
+            var allTmpl = $('#all_template').html(),
+                puzzlesHtml = "";
+            puzzles.forEach(function(puzzle) {
+                puzzlesHtml += substitute(puzzleTmpl, puzzle);
+            });
+            html += substitute(allTmpl, {
+                'puzzles': puzzlesHtml
+            });
+        }
+
+        $('#puzzle_list').html(html);
+
+    });
+</script>
+</body>
