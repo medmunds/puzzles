@@ -106,7 +106,7 @@ header {
 }
 
 menu {
-    @groupSpacing: 0.5em;
+    @groupSpacing: 5px;
 
     margin: (-@groupSpacing);
 
@@ -119,6 +119,54 @@ menu {
 .keyboard {
     button {
         .btn-large;
+    }
+}
+
+//
+// Responsive Game Layout
+//
+
+@media (max-width: @responsiveTinyMax) {
+    body {
+        padding-left: 5px;
+        padding-right: 5px;
+    }
+    header, section, .game {
+        margin: 5px 0;
+    }
+    header {
+        padding-bottom: 4px;
+        h1 {
+            display: block; // because inline-block was wrapping on Android
+        }
+        .subtitle {
+            display: none;
+        }
+    }
+    h1 {
+        font-size: @baseFontSize * 1.5;
+        line-height: @baseLineHeight * 1.5;
+    }
+    button, .keyboard button, select {
+        .btn-small;
+    }
+    select {
+        height: (@baseLineHeight + 2*(2px + 1px)); // @paddingSmall vertical + border
+    }
+    menu { // should make this a mixin
+        @groupSpacing: 2px;
+
+        margin: (-@groupSpacing);
+        .buttongroup {
+            display: inline-block;
+            margin: @groupSpacing;
+        }
+    }
+
+    .game {
+        // undo .well
+        border: none;
+        padding: 0;
     }
 }
 
