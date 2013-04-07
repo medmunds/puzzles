@@ -174,42 +174,37 @@ body.index {
     li {
         display: inline-block;
         vertical-align: top;
-        position: relative;
-
-        .box-sizing(border-box);
         width: 24.75%; // Regular layout; see responsive overrides below
-        min-height: (@thumbSize + 2*@tilePadding + 2px); // in case description short
-
         margin: (@baseLineHeight/2) -1px;
-        line-height: @baseLineHeight;
-        padding: @tilePadding @tilePadding @tilePadding (@tilePadding + @thumbSize + @tilePadding);
 
-        border: 1px solid transparent;
-        .border-radius(@baseBorderRadius);
-
-        h3, h4 {
-            margin-top: 0;
-        }
-        p {
-            margin: 10px 0 0;
-        }
-
-        // Entire LI contents are wrapped in an A; make the LI behave like the A
         > a {
             display: block;
-            color: inherit;
-        }
-        > a:hover {
-            text-decoration: inherit;
-        }
-        h3, h4 {
-            color: @linkColor;
-        }
-        &:hover {
-            border-color: @linkColor;
+            position: relative;
+
+            min-height: @thumbSize; // in case description short
+            line-height: @baseLineHeight;
+            padding: @tilePadding @tilePadding @tilePadding (@tilePadding + @thumbSize + @tilePadding);
+
+            border: 1px solid transparent;
+            .border-radius(@baseBorderRadius);
+
             h3, h4 {
-                color: @linkColorHover;
-                text-decoration: underline;
+                color: @linkColor;
+                margin-top: 0;
+            }
+            p {
+                margin: 10px 0 0;
+            }
+
+            // Entire LI contents are wrapped in an A; make the LI behave like the A
+            color: inherit;
+            &:hover {
+                text-decoration: inherit;
+                border-color: @linkColor;
+                h3, h4 {
+                    color: @linkColorHover;
+                    text-decoration: underline;
+                }
             }
         }
 
