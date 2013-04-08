@@ -25,7 +25,7 @@ BUILT_CSS = $(addprefix $(BUILDDIR)/css/, $(notdir $(SRC_LESS:.less=.css)))
 
 all: index css lib_js js puzzles
 
-.PHONY: all puzzles css lib_js js index clean
+.PHONY: all puzzles css lib_js js index update_puzzles_source clean
 
 
 puzzles: $(PUZZLES_SRC)/$(PUZZLES_MAKEFILE)
@@ -36,6 +36,18 @@ js: $(BUILT_JS)
 css: $(BUILT_CSS)
 
 index: $(BUILDDIR)/index.html
+
+
+update_puzzles_source:
+	git checkout sgt-puzzles
+	curl -L -o puzzles.tar.gz http://www.chiark.greenend.org.uk/~sgtatham/puzzles/puzzles.tar.gz
+	rm -rf puzzles
+	tar -x -s '/^puzzles-r[0-9]*/puzzles/' -z -f puzzles.tar.gz
+	rm puzzles.tar.gz
+	git add --all puzzles
+	git commit -m "Updated puzzles to r`sed -e's/-DREVISION=//' puzzles/version.def`"
+	git checkout master
+	git merge sgt-puzzles
 
 
 $(PUZZLES_SRC)/$(PUZZLES_MAKEFILE): $(PUZZLES_SRC)/mkfiles.pl $(PUZZLES_SRC)/Recipe

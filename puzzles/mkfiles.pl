@@ -1626,14 +1626,17 @@ if (defined $makefiles{'emcc'}) {
     print "\n\n";
     print &splitline(".PHONY: all clean " . join " ", &progrealnames("X"));
     print "\n\n";
+    # Link dependencies (hack up gtk's prog:obj.o...)
     foreach $p (&prognames("X")) {
       ($prog, $type) = split ",", $p;
       print "$prog: \$(JSDIR)/$prog.js \$(JSDIR)/$prog.fast.js \$(BUILDDIR)/$prog.html\n";
       $objstr = &objects($p, "X.bc", undef, undef);
-      $objstr =~ s/gtk\.bc/emscripten\.bc/g;
+      $objstr =~ s/gtk\.bc/emscripten\.bc/g; # we need emscripten.bc rather than gtk.bc
+      $objstr =~ s/[a-z]*-icon.bc//g;        # and we don't need any icon (and won't build it)
       print &splitline("\$(JSDIR)/$prog.js \$(JSDIR)/$prog.fast.js: " . $objstr), "\n";
       print "\n";
     }
+    # Src dependencies (headers, etc.)
     foreach $d (&deps("X.bc", undef, $dirpfx, "/")) {
       $oobjs = $d->{obj};
       $ddeps= join " ", @{$d->{deps}};
