@@ -1613,13 +1613,14 @@ if (defined $makefiles{'emcc'}) {
     &splitline("CFLAGS := -Wall -g -DSTYLUS_BASED -DSMALL_SCREEN " .
 	       (join " ", map {"-I$dirpfx$_"} @srcdirs) .
 	       " \$(CFLAGS)")."\n".
-	"C_EXPORT_LIST := ../c_exports.json\n".
-	&splitline("LDFLAGS := -O2 --pre-js ../pre_js.js --post-js ../post_js.js ".
+	"C_EXPORT_LIST := ../js/c_exports.json\n".
+	&splitline("LDFLAGS := -O2 --pre-js ../js/pre_js.js --post-js ../js/post_js.js ".
 	    "-s TOTAL_MEMORY=0xC0000 -s FAST_MEMORY=0xC0000 -s TOTAL_STACK=0x10000 ".
 	    "-s ALLOW_MEMORY_GROWTH=1 ".
 	    "-s EXPORTED_FUNCTIONS=\"`cat \$(C_EXPORT_LIST)`\"")."\n".
     "BUILDDIR := ../build\n".
-    "HTMLTMPL := ../game.html\n".
+    "JSDIR := \$(BUILDDIR)/js\n".
+    "HTMLTMPL := ../html/puzzle.html\n".
     "\n";
     print &splitline("all: " . join " ", &progrealnames("X"));
     print "\n\n";
@@ -1627,10 +1628,10 @@ if (defined $makefiles{'emcc'}) {
     print "\n\n";
     foreach $p (&prognames("X")) {
       ($prog, $type) = split ",", $p;
-      print "$prog: \$(BUILDDIR)/$prog.js \$(BUILDDIR)/$prog.fast.js \$(BUILDDIR)/$prog.html\n";
+      print "$prog: \$(JSDIR)/$prog.js \$(JSDIR)/$prog.fast.js \$(BUILDDIR)/$prog.html\n";
       $objstr = &objects($p, "X.bc", undef, undef);
       $objstr =~ s/gtk\.bc/emscripten\.bc/g;
-      print &splitline("\$(BUILDDIR)/$prog.js \$(BUILDDIR)/$prog.fast.js: " . $objstr), "\n";
+      print &splitline("\$(JSDIR)/$prog.js \$(JSDIR)/$prog.fast.js: " . $objstr), "\n";
       print "\n";
     }
     foreach $d (&deps("X.bc", undef, $dirpfx, "/")) {
@@ -1645,7 +1646,7 @@ if (defined $makefiles{'emcc'}) {
     print $makefile_extra{'emcc'} || "";
     print "\nclean:\n";
     print &splitline("\trm -f *.bc " .
-      (join " ", map { "\$(BUILDDIR)/$_.{js,fast.js,html}" } &progrealnames("X")), 69)
+      (join " ", map { "\$(BUILDDIR)/$_.html \$(JSDIR)/$_.{js,fast.js}" } &progrealnames("X")), 69)
       . "\n";
     select STDOUT; close OUT;
 }

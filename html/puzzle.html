@@ -3,18 +3,18 @@
 <html>
 <head>
     <meta charset="utf-8" />
-    <title>{{GAME}}</title>
+    <title>{{PUZZLE}}</title>
     <!--[if lt IE 9]>
     <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.6.2/html5shiv.js"></script>
     <![endif]-->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="game.css" rel="stylesheet">
+    <link href="css/puzzles.css" rel="stylesheet">
 </head>
 <body class="puzzle">
 <div class="container">
 
     <header>
-        <h1>{{GAME}}</h1>
+        <h1>{{PUZZLE}}</h1>
         <span class="subtitle">from Simon Tatham's portable puzzle collection</span>
     </header>
 
@@ -83,7 +83,7 @@
         <!-- Add some {{SHORT_HELP_TEXT}} here -->
         <p>See the
             <a class="docs"
-               href="http://www.chiark.greenend.org.uk/~sgtatham/puzzles/doc/{{GAME}}.html"
+               href="http://www.chiark.greenend.org.uk/~sgtatham/puzzles/doc/{{PUZZLE}}.html"
                target="puzzle_docs">full instructions</a></p>
     </section>
 
@@ -105,12 +105,12 @@
 </div>
 
 
-<script src="debug.js"></script>
-<script src="lib/future.js"></script>
+<script src="js/debug.js"></script>
+<script src="js/lib/future.js"></script>
 
 <!--[if lt IE 9]>
 <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-<script src="lib/excanvas.js"></script>
+<script src="js/lib/excanvas.js"></script>
 <![endif]-->
 <!--[if gte IE 9]><!-->
 <script src="http://code.jquery.com/jquery-2.0.0b2.min.js"></script>
@@ -120,10 +120,10 @@
     Module['noInitialRun'] = true;
     Module['noExitRuntime'] = true;
 </script>
-<script src="lib/jquery.requestAnimationFrame.min.js"></script>
-<script src="cglue.js"></script>
-<script src="frontend.js"></script>
-<script src="drawing.js"></script>
+<script src="js/lib/jquery.requestAnimationFrame.min.js"></script>
+<script src="js/cglue.js"></script>
+<script src="js/frontend.js"></script>
+<script src="js/drawing.js"></script>
 <script>
     // Load the correct version of game.js for this browser.
     // (Safari 5 mobile doesn't support Float64Array;
@@ -131,7 +131,7 @@
     // Chrome and Firefox run significantly faster with typed arrays.)
     (function() {
         var supportsTypedArrays = (typeof Float64Array !== 'undefined'),
-            gameSrc = "{{GAME}}" + (supportsTypedArrays ? ".fast.js" : ".js"),
+            gameSrc = "js/{{PUZZLE}}" + (supportsTypedArrays ? ".fast.js" : ".js"),
             script = document.createElement('script'),
             head = document.getElementsByTagName('head')[0];
         debug("Loading game from", gameSrc);

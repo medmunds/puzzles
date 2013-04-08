@@ -212,22 +212,25 @@ PuzzleApplet.class: PuzzleApplet.java org
 $(BUILDDIR):
 	mkdir -p $(BUILDDIR)
 
+$(JSDIR):
+	mkdir -p $(JSDIR)
+
 %.bc: %.c
 	$(CC) $(COMPAT) $(FWHACK) $(CFLAGS) $(XFLAGS) -c $< -o $@
 
 # Older browsers don't support JavaScript TypedArrays, and Emscripten
 # can't generate code that falls back to ordinary arrays at runtime,
 # so we build two versions of the JS game: a normal one that doesn't
-# use TypedArray and a "fast" one that does. The game html loads the
+# use TypedArray and a "fast" one that does. The puzzle html loads the
 # correct version for the browser it's running in.
 
-$(BUILDDIR)/%.js: %.bc $(C_EXPORT_LIST) | $(BUILDDIR)
+$(JSDIR)/%.js: %.bc $(C_EXPORT_LIST) | $(JSDIR)
 	$(CC) -s USE_TYPED_ARRAYS=0 $(LDFLAGS) $(XLDFLAGS) -o $@ $^ -lm
 
-$(BUILDDIR)/%.fast.js: %.bc $(C_EXPORT_LIST) | $(BUILDDIR)
+$(JSDIR)/%.fast.js: %.bc $(C_EXPORT_LIST) | $(JSDIR)
 	$(CC) -s USE_TYPED_ARRAYS=2 $(LDFLAGS) $(XLDFLAGS) -o $@ $^ -lm
 
 $(BUILDDIR)/%.html: $(HTMLTMPL) | $(BUILDDIR)
-	sed -e "s/{{GAME}}/$*/g" $< > $@
+	sed -e "s/{{PUZZLE}}/$*/g" $< > $@
 
 !end

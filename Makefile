@@ -1,7 +1,7 @@
 BUILDDIR := ./build
 TOOLPATH := ../emscripten/
 LESSC := lessc
-LESSFLAGS :=
+LESSFLAGS := --include-path=third_party/bootstrap/less
 
 PUZZLES_SRC = ./puzzles
 PUZZLES_MAKEFILE = Makefile.emcc
@@ -11,11 +11,16 @@ LIB_JS = \
 	third_party/excanvas/excanvas.js \
 	third_party/jquery-requestanimationframe/jquery.requestAnimationFrame.min.js
 
-SRC_JS = cglue.js debug.js drawing.js frontend.js
-SRC_LESS = game.less
+SRC_JS = \
+	js/cglue.js \
+	js/debug.js \
+	js/drawing.js \
+	js/frontend.js
 
-BUILT_JS = $(addprefix $(BUILDDIR)/, $(SRC_JS))
-BUILT_CSS = $(addprefix $(BUILDDIR)/, $(SRC_LESS:.less=.css))
+SRC_LESS = less/puzzles.less
+
+BUILT_JS = $(addprefix $(BUILDDIR)/js/, $(notdir $(SRC_JS)))
+BUILT_CSS = $(addprefix $(BUILDDIR)/css/, $(notdir $(SRC_LESS:.less=.css)))
 
 
 all: index css lib_js js puzzles
@@ -42,19 +47,19 @@ puzzle-%:: $(PUZZLES_SRC)/$(PUZZLES_MAKEFILE) css lib_js js
 
 
 lib_js: $(LIB_JS) | $(BUILDDIR)
-	mkdir -p $(BUILDDIR)/lib
-	cp $(LIB_JS) $(BUILDDIR)/lib/
+	mkdir -p $(BUILDDIR)/js/lib
+	cp $(LIB_JS) $(BUILDDIR)/js/lib/
 
 $(BUILDDIR) :
-	mkdir -p $(BUILDDIR)
+	mkdir -p $(BUILDDIR) $(BUILDDIR)/js $(BUILDDIR)/css
 
-$(BUILDDIR)/%.js : %.js | $(BUILDDIR)
+$(BUILDDIR)/js/%.js : js/%.js | $(BUILDDIR)/js
 	cp $< $@
 
-$(BUILDDIR)/%.css : %.less | $(BUILDDIR)
+$(BUILDDIR)/css/%.css : less/%.less | $(BUILDDIR)/css
 	$(LESSC) $(LESSFLAGS) $< > $@
 
-$(BUILDDIR)/%.html : puzzles-%.html | $(BUILDDIR)
+$(BUILDDIR)/%.html : html/%.html | $(BUILDDIR)
 	cp $< $@
 
 clean:
