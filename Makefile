@@ -22,6 +22,8 @@ SRC_LESS = less/puzzles.less
 BUILT_JS = $(addprefix $(BUILDDIR)/js/, $(notdir $(SRC_JS)))
 BUILT_CSS = $(addprefix $(BUILDDIR)/css/, $(notdir $(SRC_LESS:.less=.css)))
 
+SRC_ICONS = $(wildcard $(PUZZLES_SRC)/icons/*-ibase.png)
+BUILT_IMG = $(addprefix $(BUILDDIR)/img/, $(notdir $(SRC_ICONS)))
 
 all: index css lib_js js puzzles
 
@@ -35,7 +37,7 @@ js: $(BUILT_JS)
 
 css: $(BUILT_CSS)
 
-index: $(BUILDDIR)/index.html
+index: $(BUILDDIR)/index.html $(BUILT_IMG)
 
 
 update_puzzles_source:
@@ -63,9 +65,12 @@ lib_js: $(LIB_JS) | $(BUILDDIR)
 	cp $(LIB_JS) $(BUILDDIR)/js/lib/
 
 $(BUILDDIR) :
-	mkdir -p $(BUILDDIR) $(BUILDDIR)/js $(BUILDDIR)/css
+	mkdir -p $(BUILDDIR) $(BUILDDIR)/js $(BUILDDIR)/css $(BUILDDIR)/img
 
 $(BUILDDIR)/js/%.js : js/%.js | $(BUILDDIR)/js
+	cp $< $@
+
+$(BUILDDIR)/img/%.png : $(PUZZLES_SRC)/icons/%.png | $(BUILDDIR)/img
 	cp $< $@
 
 $(BUILDDIR)/css/%.css : less/%.less | $(BUILDDIR)/css
@@ -75,5 +80,5 @@ $(BUILDDIR)/%.html : html/%.html | $(BUILDDIR)
 	cp $< $@
 
 clean:
-	rm -f $(BUILT_CSS) $(BUILT_JS)
+	rm -rf $(BUILDDIR)
 	cd $(PUZZLES_SRC) && $(MAKE) -f $(PUZZLES_MAKEFILE) clean
