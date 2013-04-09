@@ -26,6 +26,9 @@ BUILT_CSS = $(addprefix $(BUILDDIR)/css/, $(notdir $(SRC_LESS:.less=.css)))
 SRC_ICONS = $(wildcard $(PUZZLES_SRC)/icons/*-ibase.png)
 BUILT_IMG = $(addprefix $(BUILDDIR)/img/, $(notdir $(SRC_ICONS)))
 
+PUBLISH_TMPDIR := ./_publish_tmp
+
+
 all: build_puzzles
 
 .PHONY: all build_puzzles puzzles css lib_js js index update_puzzles_source publish clean
@@ -43,14 +46,17 @@ css: $(BUILT_CSS)
 index: $(BUILDDIR)/index.html $(BUILT_IMG)
 
 publish: build_puzzles
-	git checkout gh-pages
-	mv $(BUILDDIR)/* .
-	rmdir $(BUILDDIR)
-	git add --all .
-	git rm third_party # grr
-	git commit -m "publishing `date`"
+	git fetch origin gh-pages
+	git clone --shared --branch gh-pages --single-branch . $(PUBLISH_TMPDIR)
+	cd $(PUBLISH_TMPDIR) && git merge gh-pages
+	rm -rf $(PUBLISH_TMPDIR)/*
+	cp -rp $(BUILDDIR)/* $(PUBLISH_TMPDIR)
+	cd $(PUBLISH_TMPDIR) && \
+	  git add --all . && \
+	  git commit -m "Publishing `date`" && \
+	  git push origin gh-pages
+	rm -rf $(PUBLISH_TMPDIR)
 	git push origin gh-pages
-	git checkout master
 
 
 update_puzzles_source:
