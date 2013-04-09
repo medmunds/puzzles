@@ -23,13 +23,13 @@
         <menu class="control" type="toolbar">
             <div class="buttongroup">
                 <select id="game_preset_menu"></select>
-                <button id="game_new" title="New game">New</button>
-                <button id="game_restart" title="Reset this game to the beginning">Restart</button>
-                <button id="game_solve" title="Show solution">Solve</button>
+                <button class="command game-new" title="New game">New</button>
+                <button class="command game-restart" title="Reset this game to the beginning">Restart</button>
+                <button class="command game-solve" title="Show solution">Solve</button>
             </div>
             <div class="buttongroup">
-                <button id="undo" title="Reverse your last move">Undo</button>
-                <button id="redo">Redo</button>
+                <button class="command undo" title="Reverse your last move">Undo</button>
+                <button class="command redo">Redo</button>
             </div>
         </menu>
 
@@ -67,13 +67,17 @@
             </div>
             <div class="alert-success message" id="win" role="dialog" tabindex="-1"
                  aria-labelledby="win_label">
-                <h4 id="win_label">Congratulations</h4>
+                <button class="close">&times;</button>
+                <h4 id="win_label">Congratulations!</h4>
                 <p>You solved the puzzle</p>
+                <button class="command game-new">New Game</button>
             </div>
             <div class="alert-danger message" id="loss" role="dialog" tabindex="-1"
                  aria-labelledby="loss_label">
-                <h4 id="loss_label">Uh-oh</h4>
-                <p>Looks like you lost</p>
+                <button class="close">&times;</button>
+                <h4 id="loss_label">Uh-oh:</h4>
+                <p>Looks like you&#39;re out of options</p>
+                <button class="command game-new">New Game</button>
             </div>
         </div>
 

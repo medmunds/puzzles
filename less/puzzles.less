@@ -188,7 +188,6 @@ menu {
     // background-color: rgba(0, 0, 0, 0.10);
 
     display: none;
-    text-align: center;
 }
 
 .message {
@@ -196,14 +195,25 @@ menu {
     .alert-block;
 
     display: none; // will be inline-block when shown
-    text-align: left;
     position: relative;
     top: 30%;
+    left: 10%;
     z-index: @zindexModal;
 
     &.alert-info { .alert-info; }
     &.alert-success { .alert-success; }
     &.alert-danger { .alert-danger; }
+
+    h4 {
+        margin-top: 0;
+        margin-right: 5px;
+    }
+
+    .close {
+        position: absolute;
+        top: 5px;
+        right: 10px;
+    }
 }
 
 //

@@ -129,6 +129,11 @@
         //
 
         newGame: function() {
+            if (this.currentMessage) {
+                // E.g., clicking "new game" in the "you won" message
+                this.currentMessage.hide();
+                this.currentMessage = null;
+            }
             var msg = Message('#loading');
             msg.shown(function() {
                 midend_new_game(this.midend);
@@ -147,6 +152,7 @@
             this._updateControlState();
         },
         solve: function() {
+            // TODO: block the "you won" message
             midend_solve(this.midend);
             this._updateControlState();
         },
@@ -164,9 +170,21 @@
                 canRedo = !!midend_can_redo(this.midend),
                 status = midend_status(this.midend);
 
-            $("#game_solve").prop('disabled', (status !== 0));
-            $("#undo").prop('disabled', !canUndo);
-            $("#redo").prop('disabled', !canRedo);
+            $('.command.game-solve').prop('disabled', (status !== 0));
+            $('.command.undo').prop('disabled', !canUndo);
+            $('.command.redo').prop('disabled', !canRedo);
+
+            if (status > 0) {
+                // TODO: don't show this if they used "solve"
+                this.currentMessage = Message('#win', true);
+                this.currentMessage.show();
+            } else if (status < 0) {
+                this.currentMessage = Message('#loss', true);
+                this.currentMessage.show();
+            } else if (this.currentMessage) {
+                this.currentMessage.hide();
+                this.currentMessage = null;
+            }
         },
 
 
@@ -454,11 +472,13 @@
                 return false;
             });
 
-            $("#game_new").click(this.newGame.bind(this));
-            $("#game_restart").click(this.restartGame.bind(this));
-            $("#game_solve").click( this.solve.bind(this));
-            $("#undo").click(this.undo.bind(this));
-            $("#redo").click(this.redo.bind(this));
+            var $app = $(".app");
+
+            $app.on('click', '.command.game-new', this.newGame.bind(this));
+            $app.on('click', '.command.game-restart', this.restartGame.bind(this));
+            $app.on('click', '.command.game-solve', this.solve.bind(this));
+            $app.on('click', '.command.undo', this.undo.bind(this));
+            $app.on('click', '.command.redo', this.redo.bind(this));
 
             $(".keyboard").on('click', 'button', this._virtualKeyboardPress.bind(this));
 
@@ -510,12 +530,12 @@
 var Message = (function($) {
     "use strict";
 
-    function Message(selector) {
+    function Message(selector, closeOnBackdrop) {
         var $msg = $(selector),
             $backdrop = $msg.parent(),
             shown = function() {};
 
-        return {
+        var message = {
             show: function() {
                 $backdrop.css('display', 'block');
                 $msg.css('display', 'inline-block');
@@ -528,7 +548,14 @@ var Message = (function($) {
             shown: function(f) {
                 shown = f;
             }
+        };
+
+        $msg.on('click', '.close', message.hide);
+        if (closeOnBackdrop) {
+            $backdrop.on('click', message.hide);
         }
+
+        return message;
     }
 
     return Message;
