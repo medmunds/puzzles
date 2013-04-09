@@ -13,6 +13,7 @@ LIB_JS = \
 
 SRC_JS = \
 	js/cglue.js \
+	js/cmemmonitor.js \
 	js/debug.js \
 	js/drawing.js \
 	js/frontend.js

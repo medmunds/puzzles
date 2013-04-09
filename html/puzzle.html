@@ -87,21 +87,7 @@
                target="puzzle_docs">full instructions</a></p>
     </section>
 
-    <section class="debug">
-        <div id="memdebug">
-            <div>
-                <span class="title">Stack</span>
-                <span class="meter" id="stack_usage"></span>
-            </div>
-            <div>
-                <span class="title">Static</span>
-                <span class="meter" id="static_usage"></span>
-            </div>
-        </div>
-
-        <div id="debug"></div>
-    </section>
-
+    <section class="debug" id="debug"></section>
 </div>
 
 
@@ -121,6 +107,7 @@
     Module['noExitRuntime'] = true;
 </script>
 <script src="js/lib/jquery.requestAnimationFrame.min.js"></script>
+<script src="js/cmemmonitor.js"></script>
 <script src="js/cglue.js"></script>
 <script src="js/frontend.js"></script>
 <script src="js/drawing.js"></script>
@@ -142,33 +129,15 @@
 
     function game_script_loaded() {
         jQuery(function($) { // once the DOM is ready (perhaps immediately)...
-            var debug_memory_usage;
-            if (typeof MAX_STACK_USED !== 'undefined') {
-                debug_memory_usage = function(where) {
-                    debug(where,
-                        "\nMax stack:", "0x"+MAX_STACK_USED.toString(16),
-                        "Max static:", "0x"+MAX_STATIC_USED.toString(16))
-                };
-                Meter('#stack_usage', STACK_MAX - STACK_ROOT, function() {
-                    return { current: STACKTOP - STACK_ROOT, peak: MAX_STACK_USED };
-                });
-                Meter('#static_usage', TOTAL_MEMORY - STACK_MAX, function () {
-                    return { current: STATICTOP - STACK_MAX, peak: MAX_STATIC_USED };
-                });
-
-            } else {
-                $("#memdebug").hide();
-                debug_memory_usage = debug;
+            if (typeof CMemoryMonitor !== 'undefined') {
+                CMemoryMonitor.initMeters('#debug');
             }
 
-
             var frontend = new Frontend('gameboard', 'status');
-            //debug_memory_usage("Frontend created");
 
             // Wait for a browser repaint before generating the new game
             setTimeout(function() {
                 frontend.newGame();
-                //debug_memory_usage("Game initialized");
             }, 0);
         });
     }

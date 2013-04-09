@@ -287,51 +287,48 @@ body.index {
 // DEBUGGING STUFF
 //
 
-.debug {
+#debug {
     //display: none;
     margin: (2 * @baseLineHeight) 0 0;
     padding-top: ((@baseLineHeight / 2) - 1);
     border-top: 1px solid @grayLight;
-}
 
-#memdebug {
-}
-
-#debug {
     white-space: pre-wrap;
     margin-top: @baseLineHeight;
+
+    .meter {
+        display: inline-block;
+        position: relative;
+        width: 250px;
+        height: @baseLineHeight;
+        background-color: @grayLighter;
+        vertical-align: bottom;
+
+        .current, .peak {
+            display: block;
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: @baseLineHeight;
+        }
+        .current {
+            background-color: @successBorder;
+        }
+        .peak {
+            left: -1px;
+            background-color: transparent;
+            border-right: 2px solid @errorText;
+        }
+        .max-label {
+            position: absolute;
+            right: 0;
+            top: 0;
+        }
+        .peak-label {
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+    }
 }
 
-.meter {
-    display: inline-block;
-    position: relative;
-    width: 250px;
-    height: @baseLineHeight;
-    background-color: @grayLighter;
-    vertical-align: bottom;
-}
-.meter .current, .meter .peak {
-    display: block;
-    position: absolute;
-    left: 0;
-    top: 0;
-    height: @baseLineHeight;
-}
-.meter .current {
-    background-color: @successBorder;
-}
-.meter .peak {
-    left: -1px;
-    background-color: transparent;
-    border-right: 2px solid @errorText;
-}
-.meter .maxLabel {
-    position: absolute;
-    right: 0;
-    top: 0;
-}
-.meter .peakLabel {
-    position: absolute;
-    left: 0;
-    top: 0;
-}
