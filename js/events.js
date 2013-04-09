@@ -52,6 +52,19 @@ var Events = (function($) {
     keymap[VK_BACK_SPACE] = 0x7F;
     keymap[VK_DELETE] = 0x7F;
 
+
+    function getMods(evt) {
+        var mods = 0;
+        if (evt.ctrlKey || evt.metaKey) {
+            mods |= MOD_CTRL;
+        }
+        if (evt.shiftKey) {
+            mods |= MOD_SHFT;
+        }
+        return mods;
+    }
+
+
     var mouseEventMap = {
         'mousedown': LEFT_BUTTON,
         'mousemove': LEFT_DRAG,
@@ -80,13 +93,10 @@ var Events = (function($) {
             x = evt.pageX - canvasOffset.left;
             y = evt.pageY - canvasOffset.top;
         }
-        var button = mouseEventMap[evt.type] + evt.which - 1; // which: 1,2,3 left,mid,right
-        if (evt.ctrlKey)
-            button |= MOD_CTRL;
-        if (evt.shiftKey)
-            button |= MOD_SHFT;
+        var button = mouseEventMap[evt.type] + evt.which - 1, // which: 1,2,3 left,mid,right
+            mods = getMods(evt);
 
-        puzzle.handleInput(x, y, button, !updateControls);
+        puzzle.handleInput(x, y, button | mods, !updateControls);
         return false;
     }
 
@@ -128,21 +138,53 @@ var Events = (function($) {
         return false;
     }
 
+
+    var asciiz = 'z'.charCodeAt(0),
+        asciiZ = 'Z'.charCodeAt(0),
+        asciiy = 'y'.charCodeAt(0),
+        asciiY = 'Y'.charCodeAt(0),
+        asciiCtrlZ = 26,
+        asciiCtrlY = 25;
+
     function keyEvent(evt) {
-        var button, retval;
+        // keydown event for special keys; keypress for ordinary keys
+        var button,
+            mods = getMods(evt),
+            wantit = false,
+            retval;
 
-        button = evt.which;
-        if (evt.type != "keypress") {
-            // Arrows and other non-ASCII keys
-            button = keymap[evt.which];
-            if (evt.ctrlKey)
-                button |= MOD_CTRL;
-            if (evt.shiftKey)
-                button |= MOD_SHFT;
+        //var desc = String(evt.which) + " '" + String.fromCharCode(evt.which) + "'";
+        //if (evt.shiftKey) desc += " shift";
+        //if (evt.metaKey) desc += " ctrl";
+        //if (evt.ctrlKey) desc += " meta";
+        //console.log(evt.type + ": " + desc);
+
+        if (evt.type == "keypress") {
+            // ASCII keys (including printable, ctrl chars, etc.)
+            button = evt.which; // jQuery normalizes charCode, etc. to here
+            wantit = !(evt.metaKey || evt.ctrlKey); // leave Command/Ctrl combos to the browser
+        } else {
+            // Keydown/keyup: arrows and other non-ASCII keys
+            button = keymap[evt.which]; // jQuery normalizes keyCode to here
+            if (evt.metaKey || evt.ctrlKey) {
+                // Handle Command/Ctrl+Z and +Y
+                if (evt.which === asciiZ) {
+                    button = evt.shiftKey ? asciiCtrlY : asciiCtrlZ;
+                    mods = 0;
+                    wantit = true;
+                } else if (evt.which === asciiY) {
+                    button = asciiCtrlY;
+                    mods = 0;
+                    wantit = true;
+                }
+            }
+
+            wantit = !!button; // if we have a mapping, handle it; else leave it to the browser
         }
+        //console.log("   wantit: " + wantit + " button=" + button + ", mods=" + mods.toString(16));
 
-        if (button) {
-            puzzle.handleInput(-1, -1, button);
+        if (wantit) {
+            puzzle.handleInput(-1, -1, button | mods);
             evt.preventDefault();
             retval = false;
         }
