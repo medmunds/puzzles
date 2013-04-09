@@ -18,7 +18,7 @@
         <span class="subtitle">from Simon Tatham's portable puzzle collection</span>
     </header>
 
-    <section class="app">
+    <section class="app" id="app">
 
         <menu class="control" type="toolbar">
             <div class="buttongroup">
@@ -113,8 +113,10 @@
 <script src="js/lib/jquery.requestAnimationFrame.min.js"></script>
 <!-- <script src="js/cmemmonitor.js"></script> -->
 <script src="js/cglue.js"></script>
-<script src="js/frontend.js"></script>
+<script src="js/puzzle.js"></script>
+<script src="js/events.js"></script>
 <script src="js/drawing.js"></script>
+<script src="js/message.js"></script>
 <script>
     // Load the correct version of game.js for this browser.
     // (Safari 5 mobile doesn't support Float64Array;
@@ -137,11 +139,11 @@
                 CMemoryMonitor.initMeters('#debug');
             }
 
-            var frontend = new Frontend('gameboard', 'status');
+            var puzzle = Puzzle('app', 'gameboard', 'status');
 
             // Wait for a browser repaint before generating the new game
             setTimeout(function() {
-                frontend.newGame();
+                puzzle.newGame();
             }, 0);
         });
     }
