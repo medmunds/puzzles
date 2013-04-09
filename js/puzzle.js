@@ -28,6 +28,13 @@ var Puzzle = (function($) {
         Events.initEvents(puzzle, $app, $canvas);
         buildPresetsMenu();
 
+        // Minimize load-time flashing: app has been hidden until now.
+        // Resize the canvas to its full target, then display the app.
+        // (It may shrink again as the first new game is created.)
+        resize();
+        $app.css('visibility', 'visible');
+        $(".help").css('visibility', 'visible');
+
         return puzzle;
     }
 
@@ -60,6 +67,7 @@ var Puzzle = (function($) {
             midend_redraw(midend);
             updateControlState();
             msg.hide();
+            $(".game").css('visibility', 'visible');
         });
         msg.show();
     }
@@ -194,16 +202,11 @@ var Puzzle = (function($) {
 
     var inResize = false,
         newGameCalled = false,  // interlock for midend_set_size
-        pendingResize = true; // want to compute size the first time we create a game
+        pendingResize = false;
 
     function resize() {
         if (inResize) {
             debug("Avoiding reentrant frontend.resize");
-            return;
-        }
-        if (!newGameCalled) {
-            // Can't midend_size until after midend_new_game
-            pendingResize = true;
             return;
         }
         inResize = true;
@@ -213,19 +216,25 @@ var Puzzle = (function($) {
 
         //console.log("Target size: " + target.width + "x" + target.height);
 
-        var type = 'i32',
-            wptr = allocate([target.width], type, ALLOC_STACK),
-            hptr = allocate([target.height], type, ALLOC_STACK);
-        midend_size(midend, wptr, hptr, /*usersize=*/true);
+        if (!newGameCalled) {
+            // Can only midend_size after midend_new_game
+            // But size now to our target, to minimize flashing
+            pendingResize = true; // after new game
+            drawing.resize(target.width, target.height);
+        } else {
+            var type = 'i32',
+                wptr = allocate([target.width], type, ALLOC_STACK),
+                hptr = allocate([target.height], type, ALLOC_STACK);
+            midend_size(midend, wptr, hptr, /*usersize=*/true);
 
-        var w = getValue(wptr, type),
-            h = getValue(hptr, type);
+            var w = getValue(wptr, type),
+                h = getValue(hptr, type);
+            //console.log("Negotized size: " + size.w + "x" + size.h);
 
-        //console.log("Negotized size: " + w + "x" + h);
-
-        drawing.resize(w, h);
-        // don't force_redraw here -- not necessary, and can cause big memory mess
-        midend_redraw(midend);
+            drawing.resize(w, h);
+            // don't force_redraw here -- not necessary, and can cause big memory mess
+            midend_redraw(midend);
+        }
 
         inResize = false;
     }
