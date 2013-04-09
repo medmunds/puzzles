@@ -1,17 +1,14 @@
-var debug;
-
-(function() {
-
+var debug = (function() {
     var slice = [].slice,
         logEl = document.getElementById('debug');
 
-    debug = function() {
+    function debug() {
         var msg = slice.call(arguments).join(" "), // must slice to convert arguments to real Array
             p = document.createElement('p'),
             t = document.createTextNode(msg);
         p.appendChild(t);
         logEl.appendChild(p);
-    };
+    }
 
     if (typeof window !== 'undefined') {
         // Useful for seeing JS errors on mobile browsers
@@ -33,4 +30,5 @@ var debug;
         };
     }
 
+    return debug;
 })();

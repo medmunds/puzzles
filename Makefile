@@ -16,7 +16,9 @@ SRC_JS = \
 	js/cmemmonitor.js \
 	js/debug.js \
 	js/drawing.js \
-	js/frontend.js
+	js/events.js \
+	js/message.js \
+	js/puzzle.js
 
 SRC_LESS = less/puzzles.less
 

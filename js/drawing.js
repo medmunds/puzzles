@@ -1,4 +1,4 @@
-(function($, globalScope) {
+var Drawing = (function($) {
     "use strict";
 
     // from puzzles.h:
@@ -156,45 +156,45 @@
 
 
     Module.export_to_c(Drawing.prototype.set_palette_entry, 'canvas_set_palette_entry',
-        'void', ['handle', 'number', 'number', 'number', 'number']);
+        'void', ['thisp', 'number', 'number', 'number', 'number']);
     Module.export_to_c(Drawing.prototype.status_bar, 'canvas_status_bar',
-        'void', ['handle', 'string']);
+        'void', ['thisp', 'string']);
 
     Module.export_to_c(Drawing.prototype.start_draw, 'canvas_start_draw',
-        'void', ['handle']);
+        'void', ['thisp']);
     Module.export_to_c(Drawing.prototype.draw_update, 'canvas_draw_update',
-        'void', ['handle', 'number', 'number', 'number', 'number']);
+        'void', ['thisp', 'number', 'number', 'number', 'number']);
     Module.export_to_c(Drawing.prototype.end_draw, 'canvas_end_draw',
-        'void', ['handle']);
+        'void', ['thisp']);
 
     Module.export_to_c(Drawing.prototype.clip, 'canvas_clip',
-        'void', ['handle', 'number', 'number', 'number', 'number']);
+        'void', ['thisp', 'number', 'number', 'number', 'number']);
     Module.export_to_c(Drawing.prototype.unclip, 'canvas_unclip',
-        'void', ['handle']);
+        'void', ['thisp']);
 
     Module.export_to_c(Drawing.prototype.draw_text, 'canvas_draw_text',
-        'void', ['handle', 'number', 'number', 'number', 'number', 'number', 'number', 'string']);
+        'void', ['thisp', 'number', 'number', 'number', 'number', 'number', 'number', 'string']);
     Module.export_to_c(Drawing.prototype.draw_rect, 'canvas_draw_rect',
-        'void', ['handle', 'number', 'number', 'number', 'number', 'number']);
+        'void', ['thisp', 'number', 'number', 'number', 'number', 'number']);
     Module.export_to_c(Drawing.prototype.draw_line, 'canvas_draw_line',
-        'void', ['handle', 'number', 'number', 'number', 'number', 'number']);
+        'void', ['thisp', 'number', 'number', 'number', 'number', 'number']);
     Module.export_to_c(Drawing.prototype.draw_thick_line, 'canvas_draw_thick_line',
-        'void', ['handle', 'number', 'number', 'number', 'number', 'number', 'number']);
+        'void', ['thisp', 'number', 'number', 'number', 'number', 'number', 'number']);
     Module.export_to_c(Drawing.prototype.draw_poly, 'canvas_draw_poly',
-        'void', ['handle', /* int* */'number', 'number', 'number', 'number']);
+        'void', ['thisp', /* int* */'number', 'number', 'number', 'number']);
     Module.export_to_c(Drawing.prototype.draw_circle, 'canvas_draw_circle',
-        'void', ['handle', 'number', 'number', 'number', 'number', 'number']);
+        'void', ['thisp', 'number', 'number', 'number', 'number', 'number']);
 
     Module.export_to_c(Drawing.prototype.blitter_new, 'canvas_blitter_new',
-        'handle', ['handle', 'number', 'number']);
+        'object', ['thisp', 'number', 'number']);
     Module.export_to_c(Drawing.prototype.blitter_free, 'canvas_blitter_free',
-        'void', ['handle', 'handle']);
+        'void', ['thisp', 'object']);
     Module.export_to_c(Drawing.prototype.blitter_save, 'canvas_blitter_save',
-        'void', ['handle', 'handle', 'number', 'number']);
+        'void', ['thisp', 'object', 'number', 'number']);
     Module.export_to_c(Drawing.prototype.blitter_load, 'canvas_blitter_load',
-        'void', ['handle', 'handle', 'number', 'number']);
+        'void', ['thisp', 'object', 'number', 'number']);
 
-    // exports
-    globalScope.Drawing = Drawing;
+
+    return Drawing;
 
 })(jQuery, window);

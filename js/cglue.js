@@ -6,6 +6,14 @@
     var handle_map = {},
         last_handle = 7000;
 
+    /**
+     * Wrap a JavaScript object as an (integer) C handle that can be passed
+     * as an opaque pointer (void*) to C functions.
+     * (Required, because the Emscripten runtime can't store JS objects in its Int32Array heap.)
+     *
+     * @param obj
+     * @returns integer
+     */
     function CHandle(obj) {
         var chandle = obj.chandle;
         if (!chandle) {
@@ -25,38 +33,67 @@
 
     var exported_functions = {};
 
-    function export_to_c(method, name, rettype, argtypes) {
+    /**
+     * Export a JavaScript function to C. (This is the reverse of Module.cwrap.)
+     * Integrates with CHandle to simplify referring to JS objects as opaque "pointers"
+     * (void* -- integers) on the C side.
+     *
+     * @param jsfunc      The JavaScript function to export
+     * @param name        String extern function name as declared in C code (without leading '_')
+     * @param [rettype]   Return type of the function, 'number' or 'string' or 'void' or 'object'.
+     *                    Used to convert JS return value to appropriate C value.
+     * @param [argtypes]  Array of parameter types, used to convert C arguments to appropriate
+     *                    JS values. 'number' or 'string'; or 'object' to map C void* to JS object;
+     *                    or 'thisp' to use handle as 'this' when calling jsfunc; or 'ignore' to
+     *                    omit the param entirely when calling jsfunc.
+     */
+    function export_to_c(jsfunc, name, rettype, argtypes) {
         rettype = rettype || 'void';
         argtypes = argtypes || [];
         var _name = '_' + name;
         globalScope[_name] = exported_functions[_name] = function() {
             // Convert arguments from C to JavaScript types:
-            var args = Array.prototype.slice.call(arguments);
-            for (var i = 0; i < argtypes.length; i++) {
+            var thisp,
+                args = [];
+            for (var i = 0; i < arguments.length; i++) {
+                var arg = arguments[i];
                 switch (argtypes[i]) {
                     case 'string':
-                        args[i] = Pointer_stringify(args[i]);
+                        args.push(Pointer_stringify(arg));
                         break;
-                    case 'handle':
-                        args[i] = handle_map[args[i]];
+                    case 'object':
+                        args.push(handle_map[arg]);
+                        break;
+                    case 'thisp':
+                        thisp = handle_map[arg];
+                        break;
+                    case 'bool':
+                        args.push(!!arg);
+                        break;
+                    case 'number':
+                        args.push(Number(arg));
+                        break;
+                    case 'ignore':
+                        break;
+                    default:
+                        args.push(arg);
                         break;
                 }
             }
-            var retval;
-            if (argtypes.length >= 1 && argtypes[0] == 'handle') {
-                // If first argtype is handle, call as a method on that object
-                var obj = args.shift();
-                retval = method.apply(obj, args);
-            } else {
-                retval = method.apply(args);
-            }
+            var retval = jsfunc.apply(thisp, args);
             // Convert return from JavaScript to C types
             switch (rettype) {
                 case 'string':
                     retval = allocate(intArrayFromString(retval), 'i8', ALLOC_STACK);
                     break;
-                case 'handle':
+                case 'object':
                     retval = CHandle(retval);
+                    break;
+                case 'bool':
+                    retval = !!retval;
+                    break;
+                case 'number':
+                    retval = Number(retval);
                     break;
             }
             return retval;
