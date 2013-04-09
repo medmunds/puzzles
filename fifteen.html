@@ -8,7 +8,7 @@
     <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.6.2/html5shiv.js"></script>
     <![endif]-->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="game.css" rel="stylesheet">
+    <link href="css/puzzles.css" rel="stylesheet">
 </head>
 <body class="puzzle">
 <div class="container">
@@ -23,13 +23,13 @@
         <menu class="control" type="toolbar">
             <div class="buttongroup">
                 <select id="game_preset_menu"></select>
-                <button id="game_new" title="New game">New</button>
-                <button id="game_restart" title="Reset this game to the beginning">Restart</button>
-                <button id="game_solve" title="Show solution">Solve</button>
+                <button class="command game-new" title="New game">New</button>
+                <button class="command game-restart" title="Reset this game to the beginning">Restart</button>
+                <button class="command game-solve" title="Show solution">Solve</button>
             </div>
             <div class="buttongroup">
-                <button id="undo" title="Reverse your last move">Undo</button>
-                <button id="redo">Redo</button>
+                <button class="command undo" title="Reverse your last move">Undo</button>
+                <button class="command redo">Redo</button>
             </div>
         </menu>
 
@@ -67,13 +67,17 @@
             </div>
             <div class="alert-success message" id="win" role="dialog" tabindex="-1"
                  aria-labelledby="win_label">
-                <h4 id="win_label">Congratulations</h4>
+                <button class="close">&times;</button>
+                <h4 id="win_label">Congratulations!</h4>
                 <p>You solved the puzzle</p>
+                <button class="command game-new">New Game</button>
             </div>
             <div class="alert-danger message" id="loss" role="dialog" tabindex="-1"
                  aria-labelledby="loss_label">
-                <h4 id="loss_label">Uh-oh</h4>
-                <p>Looks like you lost</p>
+                <button class="close">&times;</button>
+                <h4 id="loss_label">Uh-oh:</h4>
+                <p>Looks like you&#39;re out of options</p>
+                <button class="command game-new">New Game</button>
             </div>
         </div>
 
@@ -87,30 +91,16 @@
                target="puzzle_docs">full instructions</a></p>
     </section>
 
-    <section class="debug">
-        <div id="memdebug">
-            <div>
-                <span class="title">Stack</span>
-                <span class="meter" id="stack_usage"></span>
-            </div>
-            <div>
-                <span class="title">Static</span>
-                <span class="meter" id="static_usage"></span>
-            </div>
-        </div>
-
-        <div id="debug"></div>
-    </section>
-
+    <section class="debug" id="debug"></section>
 </div>
 
 
-<script src="debug.js"></script>
-<script src="lib/future.js"></script>
+<script src="js/debug.js"></script>
+<script src="js/lib/future.js"></script>
 
 <!--[if lt IE 9]>
 <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-<script src="lib/excanvas.js"></script>
+<script src="js/lib/excanvas.js"></script>
 <![endif]-->
 <!--[if gte IE 9]><!-->
 <script src="http://code.jquery.com/jquery-2.0.0b2.min.js"></script>
@@ -120,10 +110,11 @@
     Module['noInitialRun'] = true;
     Module['noExitRuntime'] = true;
 </script>
-<script src="lib/jquery.requestAnimationFrame.min.js"></script>
-<script src="cglue.js"></script>
-<script src="frontend.js"></script>
-<script src="drawing.js"></script>
+<script src="js/lib/jquery.requestAnimationFrame.min.js"></script>
+<!-- <script src="js/cmemmonitor.js"></script> -->
+<script src="js/cglue.js"></script>
+<script src="js/frontend.js"></script>
+<script src="js/drawing.js"></script>
 <script>
     // Load the correct version of game.js for this browser.
     // (Safari 5 mobile doesn't support Float64Array;
@@ -131,7 +122,7 @@
     // Chrome and Firefox run significantly faster with typed arrays.)
     (function() {
         var supportsTypedArrays = (typeof Float64Array !== 'undefined'),
-            gameSrc = "fifteen" + (supportsTypedArrays ? ".fast.js" : ".js"),
+            gameSrc = "js/fifteen" + (supportsTypedArrays ? ".fast.js" : ".js"),
             script = document.createElement('script'),
             head = document.getElementsByTagName('head')[0];
         debug("Loading game from", gameSrc);
@@ -142,33 +133,15 @@
 
     function game_script_loaded() {
         jQuery(function($) { // once the DOM is ready (perhaps immediately)...
-            var debug_memory_usage;
-            if (typeof MAX_STACK_USED !== 'undefined') {
-                debug_memory_usage = function(where) {
-                    debug(where,
-                        "\nMax stack:", "0x"+MAX_STACK_USED.toString(16),
-                        "Max static:", "0x"+MAX_STATIC_USED.toString(16))
-                };
-                Meter('#stack_usage', STACK_MAX - STACK_ROOT, function() {
-                    return { current: STACKTOP - STACK_ROOT, peak: MAX_STACK_USED };
-                });
-                Meter('#static_usage', TOTAL_MEMORY - STACK_MAX, function () {
-                    return { current: STATICTOP - STACK_MAX, peak: MAX_STATIC_USED };
-                });
-
-            } else {
-                $("#memdebug").hide();
-                debug_memory_usage = debug;
+            if (typeof CMemoryMonitor !== 'undefined') {
+                CMemoryMonitor.initMeters('#debug');
             }
 
-
             var frontend = new Frontend('gameboard', 'status');
-            //debug_memory_usage("Frontend created");
 
             // Wait for a browser repaint before generating the new game
             setTimeout(function() {
                 frontend.newGame();
-                //debug_memory_usage("Game initialized");
             }, 0);
         });
     }
