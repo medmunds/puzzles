@@ -3212,6 +3212,11 @@ header .subtitle {
   display: inline-block;
   color: #999999;
 }
+.app,
+.game,
+.help {
+  visibility: hidden;
+}
 .game {
   min-height: 20px;
   padding: 19px;
