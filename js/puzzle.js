@@ -174,22 +174,49 @@ var Puzzle = (function($) {
             'bool', 'bool', 'bool', 'bool']);
 
 
+    function parseRGB(str) {
+        // Based on http://stackoverflow.com/a/11068286/647002
+        var m = str.match(/^#([0-9a-f]{3})$/i);
+        if (m) {
+            // in three-character format, each value is multiplied by 0x11 to give an
+            // even scale from 0x00 to 0xff
+            return [
+                parseInt(m[1].charAt(0),16)*0x11,
+                parseInt(m[1].charAt(1),16)*0x11,
+                parseInt(m[1].charAt(2),16)*0x11
+            ];
+        }
+        m = str.match(/^#([0-9a-f]{6})$/i);
+        if (m) {
+            return [
+                parseInt(m[1].substr(0,2),16),
+                parseInt(m[1].substr(2,2),16),
+                parseInt(m[1].substr(4,2),16)
+            ];
+        }
+        m = str.match(/^rgb\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)$/i);
+        if (m) {
+            return [m[1],m[2],m[3]];
+        }
+        // we don't do named colors
+        return undefined;
+    }
+
     function frontend_default_colour(/* float* */colourptr) {
         var bgcolor = $canvas.css('background-color'),
-            parsed = bgcolor.match(/^rgb\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)$/i),
-            rgb = [0.8, 0.8, 0.8];
-        if (parsed && parsed.length === 4) {
-            parsed.shift(); // pop full match
-            rgb = parsed.map(function(clr) {
-                return parseInt(clr) / 255.0;
+            rgb = parseRGB(bgcolor),
+            rgbFloat = [0.8, 0.8, 0.8];
+        if (rgb) {
+            rgbFloat = rgb.map(function(clr) {
+                return clr / 255.0;
             });
         }
         // Write it back to C
         var type = 'float',
             size = Runtime.getNativeTypeSize(type);
-        setValue(colourptr, rgb[0], type); colourptr += size;
-        setValue(colourptr, rgb[1], type); colourptr += size;
-        setValue(colourptr, rgb[2], type);
+        setValue(colourptr, rgbFloat[0], type); colourptr += size;
+        setValue(colourptr, rgbFloat[1], type); colourptr += size;
+        setValue(colourptr, rgbFloat[2], type);
     }
     Module.export_to_c(frontend_default_colour, 'frontend_default_colour', 'void',
         ['ignore', 'float*']);
