@@ -5,6 +5,11 @@
     <title>Puzzles</title>
     <!--[if lt IE 9]>
     <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.6.2/html5shiv.js"></script>
+    <script>
+        // <template> is added to html5shiv post-3.6.2...
+        window.html5.elements += ' template';
+        html5.shivDocument(document);
+    </script>
     <![endif]-->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="css/puzzles.css" rel="stylesheet">
