@@ -3230,6 +3230,15 @@ header .subtitle {
   display: inline-block;
   color: #999999;
 }
+footer {
+  padding-top: 9px;
+  margin: 30px 0 20px;
+  border-top: 1px solid #eeeeee;
+}
+footer .disclaimer {
+  color: #999999;
+  font-size: 10.5px;
+}
 .app,
 .game,
 .help {
