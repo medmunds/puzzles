@@ -232,6 +232,7 @@ const game *midend_which_game(midend *me);
 void midend_set_params(midend *me, game_params *params);
 game_params *midend_get_params(midend *me);
 void midend_size(midend *me, int *x, int *y, int user_size);
+void midend_reset_tilesize(midend *me);
 void midend_new_game(midend *me);
 void midend_restart_game(midend *me);
 void midend_stop_anim(midend *me);
@@ -251,6 +252,7 @@ config_item *midend_get_config(midend *me, int which, char **wintitle);
 char *midend_set_config(midend *me, int which, config_item *cfg);
 char *midend_game_id(midend *me, char *id);
 char *midend_get_game_id(midend *me);
+char *midend_get_random_seed(midend *me);
 int midend_can_format_as_text_now(midend *me);
 char *midend_text_format(midend *me);
 char *midend_solve(midend *me);
@@ -267,6 +269,7 @@ char *midend_deserialise(midend *me,
                          void *rctx);
 char *identify_game(char **name, int (*read)(void *ctx, void *buf, int len),
                     void *rctx);
+void midend_request_id_changes(midend *me, void (*notify)(void *), void *ctx);
 /* Printing functions supplied by the mid-end */
 char *midend_print_puzzle(midend *me, document *doc, int with_soln);
 int midend_tilesize(midend *me);
@@ -484,9 +487,9 @@ struct game {
     config_item *(*configure)(game_params *params);
     game_params *(*custom_params)(config_item *cfg);
     char *(*validate_params)(game_params *params, int full);
-    char *(*new_desc)(game_params *params, random_state *rs,
+    char *(*new_desc)(const game_params *params, random_state *rs,
 		      char **aux, int interactive);
-    char *(*validate_desc)(game_params *params, char *desc);
+    char *(*validate_desc)(const game_params *params, char *desc);
     game_state *(*new_game)(midend *me, game_params *params, char *desc);
     game_state *(*dup_game)(game_state *state);
     void (*free_game)(game_state *state);

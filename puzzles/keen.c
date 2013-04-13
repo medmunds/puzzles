@@ -42,6 +42,14 @@ static char const keen_diffchars[] = DIFFLIST(ENCODE);
 #define CMASK 0x60000000L
 #define CUNIT 0x20000000L
 
+/*
+ * Maximum size of any clue block. Very large ones are annoying in UI
+ * terms (if they're multiplicative you end up with too many digits to
+ * fit in the square) and also in solver terms (too many possibilities
+ * to iterate over).
+ */
+#define MAXBLK 6
+
 enum {
     COL_BACKGROUND,
     COL_GRID,
@@ -732,7 +740,7 @@ static char *parse_block_structure(const char **p, int w, int *dsf)
     return NULL;
 }
 
-static char *new_game_desc(game_params *params, random_state *rs,
+static char *new_game_desc(const game_params *params, random_state *rs,
 			   char **aux, int interactive)
 {
     int w = params->w, a = w*w;
@@ -847,25 +855,33 @@ done
 		x = i % w;
 		y = i / w;
 
-		if (x > 0 &&
+		if (x > 0 && dsf_size(dsf, i-1) < MAXBLK &&
 		    (best == -1 || revorder[i-1] < revorder[best]))
 		    best = i-1;
-		if (x+1 < w &&
+		if (x+1 < w && dsf_size(dsf, i+1) < MAXBLK &&
 		    (best == -1 || revorder[i+1] < revorder[best]))
 		    best = i+1;
-		if (y > 0 &&
+		if (y > 0 && dsf_size(dsf, i-w) < MAXBLK &&
 		    (best == -1 || revorder[i-w] < revorder[best]))
 		    best = i-w;
-		if (y+1 < w &&
+		if (y+1 < w && dsf_size(dsf, i+w) < MAXBLK &&
 		    (best == -1 || revorder[i+w] < revorder[best]))
 		    best = i+w;
 
 		if (best >= 0) {
-		    singletons[i] = FALSE;
+		    singletons[i] = singletons[best] = FALSE;
 		    dsf_merge(dsf, i, best);
 		}
 	    }
 	}
+
+        /* Quit and start again if we have any singletons left over
+         * which we weren't able to do anything at all with. */
+	for (i = 0; i < a; i++)
+	    if (singletons[i])
+                break;
+        if (i < a)
+            continue;
 
 	/*
 	 * Decide what would be acceptable clues for each block.
@@ -1129,7 +1145,7 @@ done
  * Gameplay.
  */
 
-static char *validate_desc(game_params *params, char *desc)
+static char *validate_desc(const game_params *params, char *desc)
 {
     int w = params->w, a = w*w;
     int *dsf;

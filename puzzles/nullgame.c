@@ -83,13 +83,13 @@ static char *validate_params(game_params *params, int full)
     return NULL;
 }
 
-static char *new_game_desc(game_params *params, random_state *rs,
+static char *new_game_desc(const game_params *params, random_state *rs,
 			   char **aux, int interactive)
 {
     return dupstr("FIXME");
 }
 
-static char *validate_desc(game_params *params, char *desc)
+static char *validate_desc(const game_params *params, char *desc)
 {
     return NULL;
 }
@@ -224,6 +224,7 @@ static void game_redraw(drawing *dr, game_drawstate *ds, game_state *oldstate,
      * covering the whole window.
      */
     draw_rect(dr, 0, 0, 10*ds->tilesize, 10*ds->tilesize, COL_BACKGROUND);
+    draw_update(dr, 0, 0, 10*ds->tilesize, 10*ds->tilesize);
 }
 
 static float game_anim_length(game_state *oldstate, game_state *newstate,
