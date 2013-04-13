@@ -2910,7 +2910,7 @@ Appendix A: Licence
 
        Portions copyright Richard Boulton, James Harvey, Mike Pinna, Jonas
        Koelker, Dariusz Olszewski, Michael Schierl, Lambros Lambrou, Bernd
-       Schmidt, Steffen Bauer and Lennard Sprong.
+       Schmidt, Steffen Bauer, Lennard Sprong and Rogier Goossens.
 
        Permission is hereby granted, free of charge, to any person
        obtaining a copy of this software and associated documentation files
@@ -2932,4 +2932,4 @@ Appendix A: Licence
        CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
        SOFTWARE.
 
-[$Id: puzzles.but 9771 2013-03-10 13:56:12Z jacob $]
+[$Id: puzzles.but 9828 2013-04-12 16:28:55Z simon $]

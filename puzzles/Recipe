@@ -16,6 +16,7 @@
 !makefile gnustep Makefile.gnustep
 !makefile nestedvm Makefile.nestedvm
 !makefile emcc Makefile.emcc
+!makefile html5 Makefile.html5
 
 !srcdir icons/
 
@@ -207,7 +208,7 @@ PuzzleApplet.class: PuzzleApplet.java org
 	mv PuzzleEngine.class $<
 !end
 
-!begin emcc
+!begin html5
 
 $(BUILDDIR):
 	mkdir -p $(BUILDDIR)
@@ -233,4 +234,20 @@ $(JSDIR)/%.fast.js: %.bc $(C_EXPORT_LIST) | $(JSDIR)
 $(BUILDDIR)/%.html: $(HTMLTMPL) | $(BUILDDIR)
 	sed -e "s/{{PUZZLE}}/$*/g" $< > $@
 
+!end
+
+# A benchmarking and testing target for the GTK puzzles.
+!begin gtk
+test: benchmark.html benchmark.txt
+
+benchmark.html: benchmark.txt benchmark.pl
+	./benchmark.pl benchmark.txt > $@
+
+benchmark.txt: $(GAMES)
+	for i in $(GAMES); do \
+		for params in $$(env -i ./$(BINPREFIX)$$i --list-presets | cut -f1 -d' '); do \
+			env -i ./$(BINPREFIX)$$i --test-solve --time-generation --generate 100 $$params \
+			|| exit 1; \
+		done; \
+	done > $@
 !end

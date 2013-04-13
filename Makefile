@@ -4,7 +4,7 @@ LESSC := lessc
 LESSFLAGS := --include-path=third_party/bootstrap/less
 
 PUZZLES_SRC = ./puzzles
-PUZZLES_MAKEFILE = Makefile.emcc
+PUZZLES_MAKEFILE = Makefile.html5
 
 LIB_JS = \
 	third_party/future/future.js \

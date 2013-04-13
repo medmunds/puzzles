@@ -749,6 +749,18 @@ install:
 		$(INSTALL_PROGRAM) -m 755 $(BINPREFIX)$$i $(DESTDIR)$(gamesdir)/$(BINPREFIX)$$i \
 		|| exit 1; \
 	done
+test: benchmark.html benchmark.txt
+
+benchmark.html: benchmark.txt benchmark.pl
+	./benchmark.pl benchmark.txt > $@
+
+benchmark.txt: $(GAMES)
+	for i in $(GAMES); do \
+		for params in $$(env -i ./$(BINPREFIX)$$i --list-presets | cut -f1 -d' '); do \
+			env -i ./$(BINPREFIX)$$i --test-solve --time-generation --generate 100 $$params \
+			|| exit 1; \
+		done; \
+	done > $@
 
 clean:
 	rm -f *.o $(BINPREFIX)blackbox $(BINPREFIX)bridges $(BINPREFIX)cube $(BINPREFIX)dominosa $(BINPREFIX)fifteen $(BINPREFIX)filling $(BINPREFIX)fillingsolver $(BINPREFIX)flip $(BINPREFIX)galaxies $(BINPREFIX)galaxiespicture $(BINPREFIX)galaxiessolver $(BINPREFIX)guess $(BINPREFIX)inertia $(BINPREFIX)keen $(BINPREFIX)keensolver $(BINPREFIX)latincheck $(BINPREFIX)lightup $(BINPREFIX)lightupsolver $(BINPREFIX)loopy $(BINPREFIX)loopysolver $(BINPREFIX)magnets $(BINPREFIX)magnetssolver $(BINPREFIX)map $(BINPREFIX)mapsolver $(BINPREFIX)mineobfusc $(BINPREFIX)mines $(BINPREFIX)net $(BINPREFIX)netslide $(BINPREFIX)nullgame $(BINPREFIX)obfusc $(BINPREFIX)pattern $(BINPREFIX)patternsolver $(BINPREFIX)pearl $(BINPREFIX)pearlbench $(BINPREFIX)pegs $(BINPREFIX)range $(BINPREFIX)rect $(BINPREFIX)samegame $(BINPREFIX)signpost $(BINPREFIX)signpostsolver $(BINPREFIX)singles $(BINPREFIX)singlessolver $(BINPREFIX)sixteen $(BINPREFIX)slant $(BINPREFIX)slantsolver $(BINPREFIX)solo $(BINPREFIX)solosolver $(BINPREFIX)tents $(BINPREFIX)tentssolver $(BINPREFIX)towers $(BINPREFIX)towerssolver $(BINPREFIX)twiddle $(BINPREFIX)undead $(BINPREFIX)unequal $(BINPREFIX)unequalsolver $(BINPREFIX)unruly $(BINPREFIX)unrulysolver $(BINPREFIX)untangle

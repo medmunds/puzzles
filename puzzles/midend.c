@@ -81,6 +81,9 @@ struct midend {
     int pressed_mouse_button;
 
     int preferred_tilesize, tilesize, winwidth, winheight;
+
+    void (*game_id_change_notify_function)(void *);
+    void *game_id_change_notify_ctx;
 };
 
 #define ensure(me) do { \
@@ -90,6 +93,29 @@ struct midend {
                                struct midend_state_entry); \
     } \
 } while (0)
+
+void midend_reset_tilesize(midend *me)
+{
+    me->preferred_tilesize = me->ourgame->preferred_tilesize;
+    {
+        /*
+         * Allow an environment-based override for the default tile
+         * size by defining a variable along the lines of
+         * `NET_TILESIZE=15'.
+         */
+
+	char buf[80], *e;
+	int j, k, ts;
+
+	sprintf(buf, "%s_TILESIZE", me->ourgame->name);
+	for (j = k = 0; buf[j]; j++)
+	    if (!isspace((unsigned char)buf[j]))
+		buf[k++] = toupper((unsigned char)buf[j]);
+	buf[k] = '\0';
+	if ((e = getenv(buf)) != NULL && sscanf(e, "%d", &ts) == 1 && ts > 0)
+	    me->preferred_tilesize = ts;
+    }
+}
 
 midend *midend_new(frontend *fe, const game *ourgame,
 		   const drawing_api *drapi, void *drhandle)
@@ -106,6 +132,9 @@ midend *midend_new(frontend *fe, const game *ourgame,
     me->nstates = me->statesize = me->statepos = 0;
     me->states = NULL;
     me->params = ourgame->default_params();
+    me->game_id_change_notify_function = NULL;
+    me->game_id_change_notify_ctx = NULL;
+
     /*
      * Allow environment-based changing of the default settings by
      * defining a variable along the lines of `NET_DEFAULT=25x25w'
@@ -147,25 +176,7 @@ midend *midend_new(frontend *fe, const game *ourgame,
     else
 	me->drawing = NULL;
 
-    me->preferred_tilesize = ourgame->preferred_tilesize;
-    {
-        /*
-         * Allow an environment-based override for the default tile
-         * size by defining a variable along the lines of
-         * `NET_TILESIZE=15'.
-         */
-
-	char buf[80], *e;
-	int j, k, ts;
-
-	sprintf(buf, "%s_TILESIZE", me->ourgame->name);
-	for (j = k = 0; buf[j]; j++)
-	    if (!isspace((unsigned char)buf[j]))
-		buf[k++] = toupper((unsigned char)buf[j]);
-	buf[k] = '\0';
-	if ((e = getenv(buf)) != NULL && sscanf(e, "%d", &ts) == 1 && ts > 0)
-	    me->preferred_tilesize = ts;
-    }
+    midend_reset_tilesize(me);
 
     sfree(randseed);
 
@@ -434,55 +445,6 @@ void midend_new_game(midend *me)
 	sfree(movestr);
     }
 
-    /*
-     * Soak test, enabled by setting <gamename>_TESTSOLVE in the
-     * environment. This causes an immediate attempt to re-solve the
-     * game without benefit of aux_info. The effect is that (at least
-     * on Unix) you can run 'FOO_TESTSOLVE=1 foo --generate 10000
-     * <params>#12345' and it will generate a lot of game ids and
-     * instantly pass each one back to the solver.
-     *
-     * (It's worth putting in an explicit seed in any such test, so
-     * you can repeat it to diagnose a problem if one comes up!)
-     */
-    {
-        char buf[80];
-        int j, k;
-        static int doing_test_solve = -1;
-        if (doing_test_solve < 0) {
-            sprintf(buf, "%s_TESTSOLVE", me->ourgame->name);
-            for (j = k = 0; buf[j]; j++)
-                if (!isspace((unsigned char)buf[j]))
-                    buf[k++] = toupper((unsigned char)buf[j]);
-            buf[k] = '\0';
-            if (getenv(buf)) {
-                /*
-                 * Since this is used for correctness testing, it's
-                 * helpful to have a visual acknowledgment that the
-                 * user hasn't mistyped the environment variable name.
-                 */
-                fprintf(stderr, "Running solver soak tests\n");
-                doing_test_solve = TRUE;
-            } else {
-                doing_test_solve = FALSE;
-            }
-        }
-        if (doing_test_solve) {
-            game_state *s;
-            char *msg, *movestr;
-
-            msg = NULL;
-            movestr = me->ourgame->solve(me->states[0].state,
-                                         me->states[0].state,
-                                         NULL, &msg);
-            assert(movestr && !msg);
-            s = me->ourgame->execute_move(me->states[0].state, movestr);
-            assert(s);
-            me->ourgame->free_game(s);
-            sfree(movestr);
-        }        
-    }
-
     me->states[me->nstates].movestr = NULL;
     me->states[me->nstates].movetype = NEWGAME;
     me->nstates++;
@@ -496,6 +458,9 @@ void midend_new_game(midend *me)
     me->ui = me->ourgame->new_ui(me->states[0].state);
     midend_set_timer(me);
     me->pressed_mouse_button = 0;
+
+    if (me->game_id_change_notify_function)
+        me->game_id_change_notify_function(me->game_id_change_notify_ctx);
 }
 
 int midend_can_undo(midend *me)
@@ -1079,12 +1044,20 @@ int midend_wants_statusbar(midend *me)
     return me->ourgame->wants_statusbar;
 }
 
+void midend_request_id_changes(midend *me, void (*notify)(void *), void *ctx)
+{
+    me->game_id_change_notify_function = notify;
+    me->game_id_change_notify_ctx = ctx;
+}
+
 void midend_supersede_game_desc(midend *me, char *desc, char *privdesc)
 {
     sfree(me->desc);
     sfree(me->privdesc);
     me->desc = dupstr(desc);
     me->privdesc = privdesc ? dupstr(privdesc) : NULL;
+    if (me->game_id_change_notify_function)
+        me->game_id_change_notify_function(me->game_id_change_notify_ctx);
 }
 
 config_item *midend_get_config(midend *me, int which, char **wintitle)
@@ -1300,6 +1273,21 @@ char *midend_get_game_id(midend *me)
     assert(me->desc);
     ret = snewn(strlen(parstr) + strlen(me->desc) + 2, char);
     sprintf(ret, "%s:%s", parstr, me->desc);
+    sfree(parstr);
+    return ret;
+}
+
+char *midend_get_random_seed(midend *me)
+{
+    char *parstr, *ret;
+
+    if (!me->seedstr)
+        return NULL;
+
+    parstr = me->ourgame->encode_params(me->curparams, TRUE);
+    assert(parstr);
+    ret = snewn(strlen(parstr) + strlen(me->seedstr) + 2, char);
+    sprintf(ret, "%s#%s", parstr, me->seedstr);
     sfree(parstr);
     return ret;
 }

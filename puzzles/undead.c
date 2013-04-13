@@ -237,7 +237,7 @@ struct game_state {
     int cheated;
 };
 
-static game_state *new_state(game_params *params) {
+static game_state *new_state(const game_params *params) {
     int i;
     game_state *state = snew(game_state);
     state->common = snew(struct game_common);
@@ -576,8 +576,9 @@ int next_list(struct guess *g, int pos) {
 
 void get_unique(game_state *state, int counter, random_state *rs) {
 
-    int p,i,c,count_uniques;
+    int p,i,c,pathlimit,count_uniques;
     struct guess path_guess;
+    int *view_count;
     
     struct entry {
         struct entry *link;
@@ -589,10 +590,10 @@ void get_unique(game_state *state, int counter, random_state *rs) {
     struct {
         struct entry *head;
         struct entry *node;
-    } views, single_views, loop_views, test_views;
+    } views, single_views, test_views;
 
     struct entry test_entry;
-    
+
     path_guess.length = state->common->paths[counter].num_monsters;
     path_guess.guess = snewn(path_guess.length,int);
     path_guess.possible = snewn(path_guess.length,int);
@@ -615,20 +616,17 @@ void get_unique(game_state *state, int counter, random_state *rs) {
 
     views.head = NULL;
     views.node = NULL;
+
+    pathlimit = state->common->paths[counter].length + 1;
+    view_count = snewn(pathlimit*pathlimit, int);
+    for (i = 0; i < pathlimit*pathlimit; i++)
+        view_count[i] = 0;
     
     do {
-        int mirror;
+        int mirror, start_view, end_view;
         
-        views.node = snewn(1,struct entry);
-        views.node->link = views.head;
-        views.node->guess = snewn(path_guess.length,int);
-        views.head = views.node;
-        views.node->start_view = 0;
-        views.node->end_view = 0;
-        memcpy(views.node->guess, path_guess.guess,
-               path_guess.length*sizeof(int));
-
         mirror = FALSE;
+        start_view = 0;
         for (p=0;p<state->common->paths[counter].length;p++) {
             if (state->common->paths[counter].p[p] == -1) mirror = TRUE;
             else {
@@ -636,17 +634,18 @@ void get_unique(game_state *state, int counter, random_state *rs) {
                     if (state->common->paths[counter].p[p] ==
                         state->common->paths[counter].mapping[i]) {
                         if (path_guess.guess[i] == 1 && mirror == TRUE)
-                            views.node->start_view++;
+                            start_view++;
                         if (path_guess.guess[i] == 2 && mirror == FALSE)
-                            views.node->start_view++;
+                            start_view++;
                         if (path_guess.guess[i] == 4)
-                            views.node->start_view++;
+                            start_view++;
                         break;
                     }
                 }
             }
         }
         mirror = FALSE;
+        end_view = 0;
         for (p=state->common->paths[counter].length-1;p>=0;p--) {
             if (state->common->paths[counter].p[p] == -1) mirror = TRUE;
             else {
@@ -654,15 +653,30 @@ void get_unique(game_state *state, int counter, random_state *rs) {
                     if (state->common->paths[counter].p[p] ==
                         state->common->paths[counter].mapping[i]) {
                         if (path_guess.guess[i] == 1 && mirror == TRUE)
-                            views.node->end_view++;
+                            end_view++;
                         if (path_guess.guess[i] == 2 && mirror == FALSE)
-                            views.node->end_view++;
+                            end_view++;
                         if (path_guess.guess[i] == 4)
-                            views.node->end_view++;
+                            end_view++;
                         break;
                     }
                 }
             }
+        }
+
+        assert(start_view >= 0 && start_view < pathlimit);
+        assert(end_view >= 0 && end_view < pathlimit);
+        i = start_view * pathlimit + end_view;
+        view_count[i]++;
+        if (view_count[i] == 1) {
+            views.node = snewn(1,struct entry);
+            views.node->link = views.head;
+            views.node->guess = snewn(path_guess.length,int);
+            views.head = views.node;
+            views.node->start_view = start_view;
+            views.node->end_view = end_view;
+            memcpy(views.node->guess, path_guess.guess,
+                   path_guess.length*sizeof(int));
         }
     } while (next_list(&path_guess, path_guess.length-1));
 
@@ -680,17 +694,8 @@ void get_unique(game_state *state, int counter, random_state *rs) {
     while (test_views.head != NULL) {
         test_views.node = test_views.head;
         test_views.head = test_views.head->link;
-        c = 0;
-        loop_views.head = views.head;
-        loop_views.node = views.node;
-        while (loop_views.head != NULL) {
-            loop_views.node = loop_views.head;
-            loop_views.head = loop_views.head->link;
-            if (test_views.node->start_view == loop_views.node->start_view &&
-                test_views.node->end_view == loop_views.node->end_view)
-                c++;
-        }
-        if (c == 1) {
+        i = test_views.node->start_view * pathlimit + test_views.node->end_view;
+        if (view_count[i] == 1) {
             single_views.node = snewn(1,struct entry);
             single_views.node->link = single_views.head;
             single_views.node->guess = snewn(path_guess.length,int);
@@ -702,6 +707,8 @@ void get_unique(game_state *state, int counter, random_state *rs) {
             count_uniques++;
         }
     }
+
+    sfree(view_count);
 
     if (count_uniques > 0) {
         test_entry.start_view = 0;
@@ -949,7 +956,7 @@ int path_cmp(const void *a, const void *b) {
     return pa->num_monsters - pb->num_monsters;
 }
 
-static char *new_game_desc(game_params *params, random_state *rs,
+static char *new_game_desc(const game_params *params, random_state *rs,
                            char **aux, int interactive) {
     int i,count,c,w,h,r,p,g;
     game_state *new;
@@ -1412,7 +1419,7 @@ static game_state *new_game(midend *me, game_params *params, char *desc) {
     return state;
 }
 
-static char *validate_desc(game_params *params, char *desc) {
+static char *validate_desc(const game_params *params, char *desc) {
     int i;
     int w = params->w, h = params->h;
     int wh = w*h;
@@ -1644,7 +1651,7 @@ struct game_drawstate {
 };
 
 #define TILESIZE (ds->tilesize)
-#define BORDER (TILESIZE/2)
+#define BORDER (TILESIZE/4)
 
 static char *interpret_move(game_state *state, game_ui *ui,
                             const game_drawstate *ds, int x, int y, int button)
@@ -1974,8 +1981,12 @@ static game_state *execute_move(game_state *state, char *move) {
 
 static void game_compute_size(game_params *params, int tilesize,
                               int *x, int *y) {
-    *x = tilesize + (2 + params->w) * tilesize;
-    *y = tilesize + (3 + params->h) * tilesize;
+    /* Ick: fake up `ds->tilesize' for macro expansion purposes */
+    struct { int tilesize; } ads, *ds = &ads;
+    ads.tilesize = tilesize;
+
+    *x = 2*BORDER+(params->w+2)*TILESIZE;
+    *y = 2*BORDER+(params->h+3)*TILESIZE;
     return;
 }
 
@@ -2410,8 +2421,8 @@ static void game_redraw(drawing *dr, game_drawstate *ds, game_state *oldstate,
                 draw_rect(dr, BORDER+(ds->tilesize*(i+1))+1,
                           BORDER+(ds->tilesize*(j+2))+1, ds->tilesize-1,
                           ds->tilesize-1, COL_BACKGROUND);
-        draw_update(dr,BORDER+TILESIZE-1,BORDER+2*TILESIZE-1,
-                    (ds->w)*TILESIZE+3, (ds->h)*TILESIZE+3);
+        draw_update(dr, 0, 0, 2*BORDER+(ds->w+2)*TILESIZE,
+                    2*BORDER+(ds->h+3)*TILESIZE);
     }
 
     hchanged = FALSE;
