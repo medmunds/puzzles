@@ -135,6 +135,8 @@
     Module = {};
     Module['noInitialRun'] = true;
     Module['noExitRuntime'] = true;
+    // Load page with ?memmon query string for memory monitoring
+    var ENABLE_C_MEMORY_MONITOR = (/[?&]memmon([&#]|$)/i).test(document.location.href);
 </script>
 <script src="js/lib/jquery.requestAnimationFrame.min.js"></script>
 <script src="js/cmemmonitor.js"></script>
@@ -148,9 +150,11 @@
     // (Safari 5 mobile doesn't support Float64Array;
     // Android, IE, etc. don't support any typed arrays.
     // Chrome and Firefox run significantly faster with typed arrays.)
+    // Load page with ?nofast query string to force non-TypedArray version.
     (function() {
         var supportsTypedArrays = (typeof Float64Array !== 'undefined'),
-            gameSrc = "js/dominosa" + (supportsTypedArrays ? ".fast.js" : ".js"),
+            nofast = (/[?&]nofast([&#]|$)/i).test(document.location.href),
+            gameSrc = "js/dominosa" + (supportsTypedArrays && !nofast ? ".fast.js" : ".js"),
             script = document.createElement('script'),
             head = document.getElementsByTagName('head')[0];
         debug("Loading game from", gameSrc);

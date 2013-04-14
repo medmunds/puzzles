@@ -4,7 +4,13 @@
 var CMemoryMonitor = (function($, globalScope) {
     "use strict";
 
-    var CMemoryMonitor = {};
+    var CMemoryMonitor = {
+        initMeters: function() {}
+    };
+
+    if (!globalScope.ENABLE_C_MEMORY_MONITOR) {
+        return CMemoryMonitor;
+    }
 
     if (typeof Object.defineProperty !== 'function') {
         // Can't monitor peak memory usage

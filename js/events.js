@@ -179,7 +179,10 @@ var Events = (function($) {
                 }
             }
 
-            wantit = !!button; // if we have a mapping, handle it; else leave it to the browser
+            // If we have a mapping, AND the Mac Command key is not down, handle it;
+            // else leave it to the browser.
+            // (Some games want Ctrl+arrow. But Cmd+arrow is browser nav shortcut.)
+            wantit = !!button && !evt.metaKey;
         }
         //console.log("   wantit: " + wantit + " button=" + button + ", mods=" + mods.toString(16));
 

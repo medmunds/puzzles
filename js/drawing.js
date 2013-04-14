@@ -107,6 +107,7 @@ var Drawing = (function($) {
                 this.context.lineTo(x+this.qx, y+this.qy);
 
             }
+            this.context.closePath();
             this._fillAndStroke(fillcolour, outlinecolour);
         },
         draw_circle: function(cx, cy, radius, fillcolour, outlinecolour) {
