@@ -797,9 +797,13 @@ static void game_changed_state(game_ui *ui, game_state *oldstate,
 
 #define PREFERRED_TILE_SIZE 33
 #define TILESIZE (ds->tilesize)
-#define BORDER (TILESIZE / 2)
-
 #define HIGHLIGHT_WIDTH (TILESIZE / 16)
+
+#ifdef NARROW_BORDERS
+#define BORDER HIGHLIGHT_WIDTH
+#else
+#define BORDER (TILESIZE / 2)
+#endif
 
 #define COORD(x)     ( BORDER + (x) * TILESIZE )
 #define FROMCOORD(x) ( ((x) + TILESIZE - BORDER) / TILESIZE - 1 )

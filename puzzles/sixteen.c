@@ -15,7 +15,11 @@
 
 #define PREFERRED_TILE_SIZE 48
 #define TILE_SIZE (ds->tilesize)
+#ifdef NARROW_BORDERS
+#define BORDER (3 * TILE_SIZE / 4 + 1) /* arrow and gutter */
+#else
 #define BORDER TILE_SIZE
+#endif
 #define HIGHLIGHT_WIDTH (TILE_SIZE / 20)
 #define COORD(x)  ( (x) * TILE_SIZE + BORDER )
 #define FROMCOORD(x)  ( ((x) - BORDER + 2*TILE_SIZE) / TILE_SIZE - 2 )

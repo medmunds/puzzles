@@ -54,7 +54,11 @@
 
 #define PREFERRED_TILE_SIZE 48
 #define TILE_SIZE (ds->tilesize)
+#ifdef NARROW_BORDERS
+#define BORDER (3 * TILE_SIZE / 4 + 1) /* arrow and gutter */
+#else
 #define BORDER TILE_SIZE
+#endif
 #define TILE_BORDER 1
 #define WINDOW_OFFSET 0
 

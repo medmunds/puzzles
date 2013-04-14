@@ -54,6 +54,20 @@
 int solver_verbose = FALSE;
 #endif
 
+
+#define DEFAULT_TILE_SIZE 32
+#define TILE_SIZE (ds->tilesize)
+#define OUTER_EDGE_SIZE (TILE_SIZE/10)
+#ifdef NARROW_BORDERS
+#define BORDER       OUTER_EDGE_SIZE
+#else
+#define BORDER       ( TILE_SIZE/2 )
+#endif
+
+#define COORD(x)     ( (x) * TILE_SIZE + BORDER )
+#define FROMCOORD(x) ( ((x)-BORDER) / TILE_SIZE )
+
+
 enum {
     COL_BACKGROUND,
     COL_GRID,
@@ -1303,9 +1317,6 @@ static void game_free_drawstate(drawing *dr, game_drawstate *ds)
     sfree(ds);
 }
 
-#define COORD(x)     ( (x) * ds->tilesize + ds->tilesize/2 )
-#define FROMCOORD(x) ( ((x)-(ds->tilesize/2)) / ds->tilesize )
-
 static char *interpret_move(game_state *state, game_ui *ui,
                             const game_drawstate *ds, int ox, int oy,
                             int button)
@@ -1323,8 +1334,8 @@ static char *interpret_move(game_state *state, game_ui *ui,
     /* Mouse click */
     if (button == LEFT_BUTTON || button == RIGHT_BUTTON ||
         button == MIDDLE_BUTTON) {
-        if (ox >= (ds->tilesize / 2) && gx < w2
-            && oy >= (ds->tilesize / 2) && gy < h2) {
+        if (ox >= BORDER && gx < w2
+            && oy >= BORDER && gy < h2) {
             hx = gx;
             hy = gy;
             ui->cursor = FALSE;
@@ -1437,8 +1448,12 @@ static game_state *execute_move(game_state *state, char *move)
 static void game_compute_size(game_params *params, int tilesize,
                               int *x, int *y)
 {
-    *x = tilesize * (params->w2 + 1);
-    *y = tilesize * (params->h2 + 1);
+    /* Ick: fake up `ds->tilesize' for macro expansion purposes */
+    struct { int tilesize; } ads, *ds = &ads;
+    ads.tilesize = tilesize;
+
+    *x = tilesize * params->w2 + BORDER*2;
+    *y = tilesize * params->h2 + BORDER*2;
 }
 
 static void game_set_size(drawing *dr, game_drawstate *ds,
@@ -1560,8 +1575,6 @@ static void unruly_draw_tile(drawing *dr, int x, int y, int tilesize, int tile)
     draw_update(dr, x, y, tilesize, tilesize);
 }
 
-#define TILE_SIZE (ds->tilesize)
-#define DEFAULT_TILE_SIZE 32
 #define FLASH_FRAME 0.12F
 #define FLASH_TIME (FLASH_FRAME * 3)
 
@@ -1576,14 +1589,14 @@ static void game_redraw(drawing *dr, game_drawstate *ds,
 
     if (!ds->started) {
         /* Main window background */
-        draw_rect(dr, 0, 0, TILE_SIZE * (w2+1), TILE_SIZE * (h2+1),
+        draw_rect(dr, 0, 0, TILE_SIZE * w2 + BORDER, TILE_SIZE * h2 + BORDER,
                   COL_BACKGROUND);
         /* Outer edge of grid */
-        draw_rect(dr, COORD(0)-TILE_SIZE/10, COORD(0)-TILE_SIZE/10,
-                  TILE_SIZE*w2 + 2*(TILE_SIZE/10) - 1,
-                  TILE_SIZE*h2 + 2*(TILE_SIZE/10) - 1, COL_GRID);
+        draw_rect(dr, COORD(0)-OUTER_EDGE_SIZE, COORD(0)-OUTER_EDGE_SIZE,
+                  TILE_SIZE*w2 + 2*OUTER_EDGE_SIZE - 1,
+                  TILE_SIZE*h2 + 2*OUTER_EDGE_SIZE - 1, COL_GRID);
 
-        draw_update(dr, 0, 0, TILE_SIZE * (w2+1), TILE_SIZE * (h2+1));
+        draw_update(dr, 0, 0, TILE_SIZE * w2 + BORDER, TILE_SIZE * h2 + BORDER);
         ds->started = TRUE;
     }
 

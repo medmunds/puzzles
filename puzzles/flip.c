@@ -26,7 +26,11 @@ enum {
 
 #define PREFERRED_TILE_SIZE 48
 #define TILE_SIZE (ds->tilesize)
+#ifdef NARROW_BORDERS
+#define BORDER    (0)
+#else
 #define BORDER    (TILE_SIZE / 2)
+#endif
 #define COORD(x)  ( (x) * TILE_SIZE + BORDER )
 #define FROMCOORD(x)  ( ((x) - BORDER + TILE_SIZE) / TILE_SIZE - 1 )
 

@@ -25,7 +25,11 @@ enum {
 
 #define PREFERRED_TILE_SIZE 24
 #define TILE_SIZE (ds->tilesize)
+#ifdef NARROW_BORDERS
+#define BORDER (2)
+#else
 #define BORDER (3 * TILE_SIZE / 4)
+#endif
 #define TLBORDER(d) ( (d) / 5 + 2 )
 #define GUTTER (TILE_SIZE / 2)
 

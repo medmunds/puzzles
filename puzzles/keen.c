@@ -1399,8 +1399,12 @@ static void game_changed_state(game_ui *ui, game_state *oldstate,
 
 #define PREFERRED_TILESIZE 48
 #define TILESIZE (ds->tilesize)
-#define BORDER (TILESIZE / 2)
 #define GRIDEXTRA max((TILESIZE / 32),1)
+#ifdef NARROW_BORDERS
+#define BORDER (GRIDEXTRA)
+#else
+#define BORDER (TILESIZE / 2)
+#endif
 #define COORD(x) ((x)*TILESIZE + BORDER)
 #define FROMCOORD(x) (((x)+(TILESIZE-BORDER)) / TILESIZE - 1)
 

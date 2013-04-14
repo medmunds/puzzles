@@ -986,7 +986,11 @@ static void game_changed_state(game_ui *ui, game_state *oldstate,
 
 #define PREFERRED_TILESIZE 32
 #define TILESIZE (ds->tilesize)
+#ifdef NARROW_BORDERS
+#define BORDER (0)
+#else
 #define BORDER (TILESIZE * 3 / 4)
+#endif
 #define DOMINO_GUTTER (TILESIZE / 16)
 #define DOMINO_RADIUS (TILESIZE / 8)
 #define DOMINO_COFFSET (DOMINO_GUTTER + DOMINO_RADIUS)

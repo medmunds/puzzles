@@ -69,7 +69,11 @@ int verbose = 0;
 
 #define PREFERRED_TILE_SIZE 32
 #define TILE_SIZE       (ds->tilesize)
+#ifdef NARROW_BORDERS
+#define BORDER          1
+#else
 #define BORDER          (TILE_SIZE / 2)
+#endif
 #define TILE_RADIUS     (ds->crad)
 
 #define COORD(x)  ( (x) * TILE_SIZE + BORDER )

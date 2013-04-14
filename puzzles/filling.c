@@ -1,6 +1,6 @@
 /* -*- tab-width: 8; indent-tabs-mode: t -*-
  * filling.c: An implementation of the Nikoli game fillomino.
- * Copyright (C) 2007 Jonas Kölker.  See LICENSE for the license.
+ * Copyright (C) 2007 Jonas Kï¿½lker.  See LICENSE for the license.
  */
 
 /* TODO:
@@ -1025,8 +1025,12 @@ static void game_changed_state(game_ui *ui, game_state *oldstate,
 
 #define PREFERRED_TILE_SIZE 32
 #define TILE_SIZE (ds->tilesize)
-#define BORDER (TILE_SIZE / 2)
 #define BORDER_WIDTH (max(TILE_SIZE / 32, 1))
+#ifdef NARROW_BORDERS
+#define BORDER BORDER_WIDTH
+#else
+#define BORDER (TILE_SIZE / 2)
+#endif
 
 struct game_drawstate {
     struct game_params params;
@@ -1207,8 +1211,12 @@ enum {
 static void game_compute_size(game_params *params, int tilesize,
                               int *x, int *y)
 {
-    *x = (params->w + 1) * tilesize;
-    *y = (params->h + 1) * tilesize;
+    /* Ick: fake up `ds->tilesize' for macro expansion purposes */
+    struct { int tilesize; } ads, *ds = &ads;
+    ads.tilesize = tilesize;
+
+    *x = params->w * tilesize + 2*BORDER;
+    *y = params->h * tilesize + 2*BORDER;
 }
 
 static void game_set_size(drawing *dr, game_drawstate *ds,
@@ -1332,8 +1340,8 @@ static void draw_square(drawing *dr, game_drawstate *ds, int x, int y,
         buf[0] = n + '0';
         buf[1] = '\0';
         draw_text(dr,
-                  (x + 1) * TILE_SIZE,
-                  (y + 1) * TILE_SIZE,
+                  BORDER + x*TILE_SIZE + TILE_SIZE/2,
+                  BORDER + y*TILE_SIZE + TILE_SIZE/2,
                   FONT_VARIABLE,
                   TILE_SIZE / 2,
                   ALIGN_VCENTRE | ALIGN_HCENTRE,

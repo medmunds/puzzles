@@ -69,7 +69,11 @@ int verbose = 0;
 
 #define PREFERRED_TILE_SIZE 32
 #define TILE_SIZE (ds->tilesize)
+#ifdef NARROW_BORDERS
+#define BORDER    2
+#else
 #define BORDER    (TILE_SIZE / 2)
+#endif
 
 #define CRAD      ((TILE_SIZE / 2) - 1)
 #define TEXTSZ    ((14*CRAD/10) - 1) /* 2 * sqrt(2) of CRAD */

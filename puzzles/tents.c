@@ -1453,8 +1453,13 @@ struct game_drawstate {
 
 #define PREFERRED_TILESIZE 32
 #define TILESIZE (ds->tilesize)
+#ifdef NARROW_BORDERS
+#define TLBORDER (1)
+#define BRBORDER (TILESIZE + 2)
+#else
 #define TLBORDER (TILESIZE/2)
 #define BRBORDER (TILESIZE*3/2)
+#endif
 #define COORD(x)  ( (x) * TILESIZE + TLBORDER )
 #define FROMCOORD(x)  ( ((x) - TLBORDER + TILESIZE) / TILESIZE - 1 )
 

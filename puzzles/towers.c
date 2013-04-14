@@ -1144,7 +1144,11 @@ static void game_changed_state(game_ui *ui, game_state *oldstate,
 
 #define PREFERRED_TILESIZE 48
 #define TILESIZE (ds->tilesize)
+#ifdef NARROW_BORDERS
+#define BORDER (TILESIZE)
+#else
 #define BORDER (TILESIZE * 9 / 8)
+#endif
 #define COORD(x) ((x)*TILESIZE + BORDER)
 #define FROMCOORD(x) (((x)+(TILESIZE-BORDER)) / TILESIZE - 1)
 

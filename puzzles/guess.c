@@ -840,7 +840,11 @@ static game_state *execute_move(game_state *from, char *move)
 #define PEG_GAP   0.10
 #define PEG_HINT  0.35
 
+#ifdef NARROW_BORDERS
+#define BORDER    0.1
+#else
 #define BORDER    0.5
+#endif
 
 static void game_compute_size(game_params *params, int tilesize,
 			      int *x, int *y)

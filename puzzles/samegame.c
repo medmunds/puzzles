@@ -75,8 +75,12 @@
 #define TILE_GAP (ds->tilegap)
 #define TILE_SIZE (TILE_INNER + TILE_GAP)
 #define PREFERRED_TILE_SIZE 32
-#define BORDER (TILE_SIZE / 2)
 #define HIGHLIGHT_WIDTH 2
+#ifdef NARROW_BORDERS
+#define BORDER HIGHLIGHT_WIDTH
+#else
+#define BORDER (TILE_SIZE / 2)
+#endif
 
 #define FLASH_FRAME 0.13F
 

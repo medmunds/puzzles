@@ -61,10 +61,14 @@ struct game_params {
 
 #define PREFERRED_TILE_SIZE 24
 #define TILE_SIZE (ds->tilesize)
+#ifdef NARROW_BORDERS
+#define BORDER (1)
+#else
 #ifdef SMALL_SCREEN
 #define BORDER (2)
 #else
 #define BORDER (TILE_SIZE * 3 / 4)
+#endif
 #endif
 
 #define CORNER_TOLERANCE 0.15F

@@ -1651,7 +1651,11 @@ struct game_drawstate {
 };
 
 #define TILESIZE (ds->tilesize)
+#ifdef NARROW_BORDERS
+#define BORDER 0
+#else
 #define BORDER (TILESIZE/4)
+#endif
 
 static char *interpret_move(game_state *state, game_ui *ui,
                             const game_drawstate *ds, int x, int y, int button)
@@ -2248,13 +2252,15 @@ static void draw_monster(drawing *dr, game_drawstate *ds, int x, int y,
 
 static void draw_monster_count(drawing *dr, game_drawstate *ds,
                                game_state *state, int c, int hflash) {
-    int dx,dy,dh;
+    int dx,dy,dyc,dh,dfh;
     char buf[8];
     char bufm[8];
     
-    dy = TILESIZE/2;
+    dy = BORDER;
     dh = TILESIZE;
     dx = BORDER+(ds->w+2)*TILESIZE/2+TILESIZE/4;
+    dyc = dy + dh/2;
+    dfh = dh/2 - 1; /* font height */
     switch (c) {
       case 0: 
         sprintf(buf,"%d",state->common->num_ghosts);
@@ -2274,17 +2280,17 @@ static void draw_monster_count(drawing *dr, game_drawstate *ds,
 
     if (!ds->ascii) { 
         draw_rect(dr,dx-2*TILESIZE/3,dy,3*TILESIZE/2,dh,COL_BACKGROUND);
-        draw_monster(dr,ds,dx-TILESIZE/3,dh,2*TILESIZE/3,hflash,1<<c);
-        draw_text(dr,dx,dh,FONT_VARIABLE,dy-1,ALIGN_HLEFT|ALIGN_VCENTRE,
+        draw_monster(dr,ds,dx-TILESIZE/3,dyc,2*TILESIZE/3,hflash,1<<c);
+        draw_text(dr,dx,dyc,FONT_VARIABLE,dfh,ALIGN_HLEFT|ALIGN_VCENTRE,
                   (state->count_errors[c] ? COL_ERROR : hflash ? COL_FLASH : COL_TEXT), buf);
         draw_update(dr,dx-2*TILESIZE/3,dy,3*TILESIZE/2,dh);
     }
     else {
         draw_rect(dr,dx-2*TILESIZE/3,dy,3*TILESIZE/2,dh,COL_BACKGROUND);
-        draw_text(dr,dx-TILESIZE/3,dh,FONT_VARIABLE,dy-1,
+        draw_text(dr,dx-TILESIZE/3,dyc,FONT_VARIABLE,dfh,
                   ALIGN_HCENTRE|ALIGN_VCENTRE,
                   hflash ? COL_FLASH : COL_TEXT, bufm);
-        draw_text(dr,dx,dh,FONT_VARIABLE,dy-1,ALIGN_HLEFT|ALIGN_VCENTRE,
+        draw_text(dr,dx,dyc,FONT_VARIABLE,dfh,ALIGN_HLEFT|ALIGN_VCENTRE,
                   (state->count_errors[c] ? COL_ERROR : hflash ? COL_FLASH : COL_TEXT), buf);        
         draw_update(dr,dx-2*TILESIZE/3,dy,3*TILESIZE/2,dh);
     }
