@@ -93,8 +93,6 @@ header {
 
 .game {
     .well;
-    .well-small;
-    padding: 5px; // don't need too much padding, as games tend to have their own
     text-align: center;
     display: inline-block;
 }
@@ -140,6 +138,12 @@ menu {
 // Responsive Game Layout
 //
 
+@media (max-width: @responsiveSmallMax) {
+    .game {
+        .well-small;
+    }
+}
+
 @media (max-width: @responsiveTinyMax) {
     body {
         padding-left: 5px;
@@ -175,12 +179,6 @@ menu {
             display: inline-block;
             margin: @groupSpacing;
         }
-    }
-
-    .game {
-        // undo .well
-        border: none;
-        padding: 0;
     }
 }
 

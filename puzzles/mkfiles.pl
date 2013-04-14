@@ -1661,7 +1661,7 @@ if (defined $makefiles{'emcc'}) {
     "# TOOLPATH = /opt/emcc/\n".
     "CC := \$(TOOLPATH)\$(CC)\n".
     # -Werror -- Clang catches a lot of warnings, so don't treat them as errors
-    &splitline("CFLAGS := -Wall -g -DSTYLUS_BASED -DSMALL_SCREEN " .
+    &splitline("CFLAGS := -Wall -g -DSTYLUS_BASED -DNARROW_BORDERS " .
 	       (join " ", map {"-I$dirpfx$_"} @srcdirs) .
 	       " \$(CFLAGS)")."\n".
 	"C_EXPORT_LIST := ../js/c_exports.json\n".

@@ -7,7 +7,7 @@ CC := emcc
 # You can define this path to point at your tools if you need to
 # TOOLPATH = /opt/emcc/
 CC := $(TOOLPATH)$(CC)
-CFLAGS := -Wall -g -DSTYLUS_BASED -DSMALL_SCREEN -I./ -Iicons/ $(CFLAGS)
+CFLAGS := -Wall -g -DSTYLUS_BASED -DNARROW_BORDERS -I./ -Iicons/ $(CFLAGS)
 C_EXPORT_LIST := ../js/c_exports.json
 LDFLAGS := -O2 --pre-js ../js/pre_js.js --post-js ../js/post_js.js -s \
 		TOTAL_MEMORY=0x80000 -s FAST_MEMORY=0x80000 -s \
