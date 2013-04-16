@@ -383,7 +383,7 @@ is permitted to return FALSE always.
 2.3.3. encode_params()
 ----------------------
 
-  char *(*encode_params)(game_params *params, int full);
+  char *(*encode_params)(const game_params *params, int full);
 
 The job of this function is to take a `game_params', and encode it in
 a string form for use in game IDs. The return value must be a newly
@@ -468,7 +468,7 @@ allocations contained within it.
 2.3.6. dup_params()
 -------------------
 
-  game_params *(*dup_params)(game_params *params);
+  game_params *(*dup_params)(const game_params *params);
 
 This function allocates a new `game_params' structure and initialises it
 with an exact copy of the information in the one provided as input. It
@@ -487,7 +487,7 @@ section 2.3.8 and section 2.3.9 for more details.
 2.3.8. configure()
 ------------------
 
-  config_item *(*configure)(game_params *params);
+  config_item *(*configure)(const game_params *params);
 
 This function is called when the user requests a dialog box for
 custom parameter configuration. It returns a newly allocated array of
@@ -557,7 +557,7 @@ never called and need not do anything at all.
 2.3.9. custom_params()
 ----------------------
 
-  game_params *(*custom_params)(config_item *cfg);
+  game_params *(*custom_params)(const config_item *cfg);
 
 This function is the counterpart to configure() (section 2.3.8). It
 receives as input an array of `config_item's which was originally
@@ -581,7 +581,7 @@ never called and need not do anything at all.
 2.3.10. validate_params()
 -------------------------
 
-  char *(*validate_params)(game_params *params, int full);
+  char *(*validate_params)(const game_params *params, int full);
 
 This function takes a `game_params' structure as input, and checks that
 the parameters described in it fall within sensible limits. (At the very
@@ -667,7 +667,7 @@ game description.
 2.4.2. validate_desc()
 ----------------------
 
-  char *(*validate_desc)(const game_params *params, char *desc);
+  char *(*validate_desc)(const game_params *params, const char *desc);
 
 This function is given a game description, and its job is to validate
 that it describes a puzzle which makes sense.
@@ -692,8 +692,8 @@ string containing an error message.
 2.4.3. new_game()
 -----------------
 
-  game_state *(*new_game)(midend *me, game_params *params,
-                          char *desc);
+  game_state *(*new_game)(midend *me, const game_params *params,
+                          const char *desc);
 
 This function takes a game description as input, together with its
 accompanying `game_params', and constructs a `game_state' describing the
@@ -722,7 +722,7 @@ to go in one section or the other.)
 2.5.1. dup_game()
 -----------------
 
-  game_state *(*dup_game)(game_state *state);
+  game_state *(*dup_game)(const game_state *state);
 
 This function allocates a new `game_state' structure and initialises it
 with an exact copy of the information in the one provided as input. It
@@ -742,7 +742,7 @@ allocations contained within it.
 2.6.1. new_ui()
 ---------------
 
-  game_ui *(*new_ui)(game_state *state);
+  game_ui *(*new_ui)(const game_state *state);
 
 This function allocates and returns a new `game_ui' structure for
 playing a particular puzzle. It is passed a pointer to the initial
@@ -760,7 +760,7 @@ allocations contained within it.
 2.6.3. encode_ui()
 ------------------
 
-  char *(*encode_ui)(game_ui *ui);
+  char *(*encode_ui)(const game_ui *ui);
 
 This function encodes any _important_ data in a `game_ui' structure in
 string form. It is only called when saving a half-finished game to a
@@ -784,7 +784,7 @@ as easily modify the game's source.)
 2.6.4. decode_ui()
 ------------------
 
-  void (*decode_ui)(game_ui *ui, char *encoding);
+  void (*decode_ui)(game_ui *ui, const char *encoding);
 
 This function parses a string previously output by encode_ui(), and
 writes the decoded data back into the provided `game_ui' structure.
@@ -792,8 +792,8 @@ writes the decoded data back into the provided `game_ui' structure.
 2.6.5. changed_state()
 ----------------------
 
-  void (*changed_state)(game_ui *ui, game_state *oldstate,
-                        game_state *newstate);
+  void (*changed_state)(game_ui *ui, const game_state *oldstate,
+                        const game_state *newstate);
 
 This function is called by the mid-end whenever the current game state
 changes, for any reason. Those reasons include:
@@ -831,7 +831,7 @@ producing new `game_state's.
 2.7.1. interpret_move()
 -----------------------
 
-  char *(*interpret_move)(game_state *state, game_ui *ui,
+  char *(*interpret_move)(const game_state *state, game_ui *ui,
                           const game_drawstate *ds,
                           int x, int y, int button);
 
@@ -947,7 +947,7 @@ MOD_MASK
 2.7.2. execute_move()
 ---------------------
 
-  game_state *(*execute_move)(game_state *state, char *move);
+  game_state *(*execute_move)(const game_state *state, char *move);
 
 This function takes an input `game_state' and a move string as output
 from interpret_move(). It returns a newly allocated `game_state' which
@@ -973,8 +973,8 @@ something. If it's set to FALSE, the game will not even offer the
 2.7.4. solve()
 --------------
 
-  char *(*solve)(game_state *orig, game_state *curr,
-                 char *aux, char **error);
+  char *(*solve)(const game_state *orig, const game_state *curr,
+                 const char *aux, char **error);
 
 This function is called when the user selects the `Solve' option from
 the menu.
@@ -993,7 +993,9 @@ to the user (such as `Solution not known for this puzzle'); that error
 message is not expected to be dynamically allocated.
 
 If this function _does_ produce a solution, it returns a move string
-suitable for feeding to execute_move() (section 2.7.2).
+suitable for feeding to execute_move() (section 2.7.2). Like a (non-
+empty) string returned from interpret_move(), the returned string should
+be dynamically allocated.
 
 2.8. Drawing the game graphics
 ------------------------------
@@ -1003,7 +1005,8 @@ This section discusses the back end functions that deal with drawing.
 2.8.1. new_drawstate()
 ----------------------
 
-  game_drawstate *(*new_drawstate)(drawing *dr, game_state *state);
+  game_drawstate *(*new_drawstate)(drawing *dr,
+                                   const game_state *state);
 
 This function allocates and returns a new `game_drawstate' structure for
 drawing a particular puzzle. It is passed a pointer to a `game_state',
@@ -1054,7 +1057,7 @@ if that ever gets implemented).
 2.8.4. compute_size()
 ---------------------
 
-  void (*compute_size)(game_params *params, int tilesize,
+  void (*compute_size)(const game_params *params, int tilesize,
                        int *x, int *y);
 
 This function is passed a `game_params' structure and a tile size. It
@@ -1066,7 +1069,7 @@ size.
 -----------------
 
   void (*set_size)(drawing *dr, game_drawstate *ds,
-                   game_params *params, int tilesize);
+                   const game_params *params, int tilesize);
 
 This function is responsible for setting up a `game_drawstate' to draw
 at a given tile size. Typically this will simply involve copying the
@@ -1115,7 +1118,8 @@ policy.
 2.8.7. anim_length()
 --------------------
 
-  float (*anim_length)(game_state *oldstate, game_state *newstate,
+  float (*anim_length)(const game_state *oldstate,
+                       const game_state *newstate,
                        int dir, game_ui *ui);
 
 This function is called when a move is made, undone or redone. It is
@@ -1155,7 +1159,8 @@ will be abandoned and the display will jump straight to the final state.
 2.8.8. flash_length()
 ---------------------
 
-  float (*flash_length)(game_state *oldstate, game_state *newstate,
+  float (*flash_length)(const game_state *oldstate,
+                        const game_state *newstate,
                         int dir, game_ui *ui);
 
 This function is called when a move is completed. (`Completed'
@@ -1199,7 +1204,7 @@ indicate which flash type is required.)
 2.8.9. status()
 ---------------
 
-  int (*status)(game_state *state);
+  int (*status)(const game_state *state);
 
 This function returns a status value indicating whether the current game
 is still in play, or has been won, or has been conclusively lost. The
@@ -1228,8 +1233,10 @@ press Undo and carry on playing.)
 ----------------
 
   void (*redraw)(drawing *dr, game_drawstate *ds,
-                 game_state *oldstate, game_state *newstate, int dir,
-                 game_ui *ui, float anim_time, float flash_time);
+                 const game_state *oldstate,
+                 const game_state *newstate,
+                 int dir, const game_ui *ui,
+                 float anim_time, float flash_time);
 
 This function is responsible for actually drawing the contents of
 the game window, and for redrawing every time the game state or the
@@ -1300,7 +1307,7 @@ If the `can_print' flag is FALSE, then this flag will be ignored.
 2.9.3. print_size()
 -------------------
 
-  void (*print_size)(game_params *params, float *x, float *y);
+  void (*print_size)(const game_params *params, float *x, float *y);
 
 This function is passed a `game_params' structure and a tile size. It
 returns, in `*x' and `*y', the preferred size in _millimetres_ of that
@@ -1311,7 +1318,7 @@ If the `can_print' flag is FALSE, this function will never be called.
 2.9.4. print()
 --------------
 
-  void (*print)(drawing *dr, game_state *state, int tilesize);
+  void (*print)(drawing *dr, const game_state *state, int tilesize);
 
 This function is called when a puzzle is to be printed out on paper. It
 should use the drawing API functions (see chapter 3) to print itself.
@@ -1384,7 +1391,7 @@ If this field is FALSE, the functions can_format_as_text_now() (section
 2.10.2. `can_format_as_text_now()'
 ----------------------------------
 
-  int (*can_format_as_text_now)(game_params *params);
+  int (*can_format_as_text_now)(const game_params *params);
 
 This function is passed a `game_params' and returns a boolean, which is
 TRUE if the game can support ASCII text output for this particular game
@@ -1410,7 +1417,7 @@ actual visible _shape_ of the game can affect that.)
 2.10.3. text_format()
 ---------------------
 
-  char *(*text_format)(game_state *state);
+  char *(*text_format)(const game_state *state);
 
 This function is passed a `game_state', and returns a newly allocated C
 string containing an ASCII representation of that game state. It is used
@@ -1452,7 +1459,7 @@ need not do anything.
 2.10.6. timing_state()
 ----------------------
 
-  int (*timing_state)(game_state *state, game_ui *ui);
+  int (*timing_state)(const game_state *state, game_ui *ui);
 
 This function is passed the current `game_state' and the local
 `game_ui'; it returns TRUE if the game timer should currently be
