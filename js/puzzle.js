@@ -167,7 +167,7 @@ var Puzzle = (function($) {
 
         $('h1').text(options.name);
         $('.keyboard').toggle(options.usesNumpad);
-        $("#game_solve").toggle(options.solveable);
+        $('.command.game-solve').toggle(options.solveable);
     }
     Module.export_to_c(frontend_set_game_info, 'frontend_set_game_info', 'void',
         ['ignore', 'void*', 'string', 'bool', 'bool', 'bool',
