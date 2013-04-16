@@ -1,7 +1,54 @@
 /*! Puzzles-html stylesheet
  */
 
+@import url(http://fonts.googleapis.com/css?family=Bitter:700);
+
+@import "variables.less";
+
+@bodyBackground:        #FDF5E6; // old lace;
+@textColor:             #472B17;
+@headingsColor:         #643310;
+@linkColor:             #173959;
+@linkColorHover:        @linkColor;
+
+// Gameboard background color:
+//
+// Some games will insist on darkening the background color to ensure
+// sufficient contrast with white (and/or their highlight colors), if
+// background lightness is less than 1.0/1.1. (See game_mkhighlight
+// in puzzles/misc.c.)
+//
+// And we want to use a relatively light page background color, because
+// we dislike low-contrast sites. But we want the color scheme to match
+// throughout the page.
+//
+// So we choose our own game background color here, making sure it
+// satisfies all these criteria.
+//
+// Also, some games really need clear delineation of the active playing
+// area (e.g., untangle) or have background color that bleeds into
+// the surrounding page (blackbox, bridges, magnets, pegs, sixteen,
+// unequal). So we draw a well around the gameboard, matching the game's
+// background color, to get a visible border.
+//
+// (It would actually look quite a bit cleaner without the well, for
+// games that don't need a border and don't bleed background. Should
+// explore doing some game-specific CSS at some point.)
+
+@gameBackground:        hsl(hue(@bodyBackground), saturation(@bodyBackground)*0.8, 1.0/1.1);
+                        // match hue
+                        // desaturate slightly, or it gets garish
+                        // lightness should really be min(1.0/1.1, lightness(@bodyBackground))
+
+@wellBackground:        @gameBackground;
+
+@grayLight:             mix(@wellBackground, @headingsColor); // muted text
+@grayLighter:           darken(@wellBackground, 7%); // hairlines -- matches well border
+
+@headingsFontFamily:    'Bitter', serif;
+
 @import "bootstrap.less";
+
 
 // Responsive breakpoints (wide, regular, narrow are matched to Bootstrap)
 
@@ -59,8 +106,12 @@ noscript {
     position: relative;
 }
 
-section, .game {
+section {
     margin: @baseLineHeight 0;
+}
+
+.game {
+    margin: (@baseLineHeight * 1.5) 0;
 }
 
 //
@@ -93,18 +144,23 @@ header {
 
 .game {
     .well;
-    text-align: center;
-    display: inline-block;
+    display: inline-block; // shrink well horizontally to hug contents
 }
 
 #status {
-    margin-bottom: 5px;
+    // Roughly an h4 in the regular body font
+    margin-bottom: 19px; // matches .well padding
+    font-size: (@baseFontSize * 1.25);
+    font-weight: bold;
+    line-height: @baseLineHeight;
+    color: @headingsColor;
+    text-rendering: optimizelegibility; // Fix the character spacing for headings
     min-height: @baseLineHeight; // else it shrinks when empty, causing lots of jumping
 }
 
 #gameboard {
     display: block;
-    background-color: inherit;
+    background-color: @gameBackground;
     cursor: default;
     font-weight: bold;
 
@@ -142,6 +198,9 @@ menu {
     .game {
         .well-small;
     }
+    #status {
+        margin-bottom: 9px; // matches .well-small padding
+    }
 }
 
 @media (max-width: @responsiveTinyMax) {
@@ -149,8 +208,15 @@ menu {
         padding-left: 5px;
         padding-right: 5px;
     }
-    header, section, .game {
+    header, section {
         margin: 5px 0;
+    }
+    .game {
+        margin: 10px 0;
+    }
+    #status {
+        font-size: @baseFontSize;
+        margin-bottom: 5px;
     }
     header {
         padding-bottom: 4px;
@@ -259,7 +325,6 @@ body.index {
             .border-radius(@baseBorderRadius);
 
             h3, h4 {
-                color: @linkColor;
                 margin-top: 0;
             }
             p {
@@ -270,7 +335,7 @@ body.index {
             color: inherit;
             &:hover {
                 text-decoration: inherit;
-                border-color: @linkColor;
+                border-color: @grayLight;
                 h3, h4 {
                     color: @linkColorHover;
                     text-decoration: underline;
