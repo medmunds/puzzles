@@ -299,6 +299,13 @@ void obfuscate_bitmap(unsigned char *bmp, int bits, int decode);
 char *bin2hex(const unsigned char *in, int inlen);
 unsigned char *hex2bin(const char *in, int outlen);
 
+/* Colour conversions: R, G, B, S, and L are all in range 0.0 - 1.0.
+ * H is in degrees 0.0 - 360.0. */
+void rgb2hsl(float inR, float inG, float inB,
+             float *outH, float *outS, float *outL);
+void hsl2rgb(float inH, float inS, float inL,
+             float *outR, float *outG, float *outB);
+
 /* Sets (and possibly dims) background from frontend default colour,
  * and auto-generates highlight and lowlight colours too. */
 void game_mkhighlight(frontend *fe, float *ret,

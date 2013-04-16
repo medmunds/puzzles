@@ -167,37 +167,109 @@ unsigned char *hex2bin(const char *in, int outlen)
     return ret;
 }
 
+/*
+ * RGB-HSL conversions
+ * Useful for lightening/darkening colours without altering hue.
+ * (Adapted from d3, which adapted them from the CSS spec.)
+ */
+
+/*
+ * in: r,g,b: 0..1
+ * out: h: 0..360; s,l: 0..1
+ */
+void rgb2hsl(float r, float g, float b, float *h, float *s, float *l)
+{
+    float mn, mx, chroma, sextant;
+    mn = min(r, min(g, b));
+    mx = max(r, max(g, b));
+    chroma = mx - mn;
+    *l = (mx + mn) / 2.0F;
+
+    if (chroma <= 0.0000001F) {
+        *h = *s = 0.0F;
+    } else {
+        if (*l > 0.5F) {
+            *s = chroma / (2.0F - mx - mn);
+        } else {
+            *s = chroma / (mx + mn);
+        }
+
+        if (mx == r) {
+            sextant = (g - b) / chroma;
+        } else if (mx == g) {
+            sextant = (b - r) / chroma + 2.0F;
+        } else {
+            sextant = (r - g) / chroma + 4.0F;
+        }
+        if (sextant < 0.0F) {
+            sextant += 6.0F;
+        }
+        *h = sextant * 60.0F;
+    }
+}
+
+#define clamp01(v) ((v) < 0.0F ? 0.0F : (v) > 1.0F ? 1.0F : (v))
+
+float _v(float h, float m1, float m2) {
+    while (h < 0.0F) {
+        h += 360.0F;
+    }
+    while (h >= 360.0F) {
+        h -= 360.0F;
+    }
+
+    if (h < 60.0F) {
+        return m1 + (m2 - m1) * h / 60.0F;
+    } else if (h < 180.0F) {
+        return m2;
+    } else if (h < 240.0F) {
+        return m1 + (m2 - m1) * (240.0 - h) / 60.0F;
+    } else {
+        return m1;
+    }
+}
+
+/* in: h: 0..360; s,l: 0..1
+ * out: r,g,b: 0..1
+ */
+void hsl2rgb(float h, float s, float l, float *r, float *g, float *b)
+{
+    float m1, m2;
+
+    s = clamp01(s);
+    l = clamp01(l);
+
+    m2 = l <= 0.5F ? l * (s + 1.0F) : l + s - l * s;
+    m1 = l * 2.0F - m2;
+
+    *r = _v(h + 120.0F, m1, m2);
+    *g = _v(h, m1, m2);
+    *b = _v(h - 120.0F, m1, m2);
+}
+
+const float hlfactor = 1.10F;
+const float llfactor = 0.90F;
+
 void game_mkhighlight_specific(frontend *fe, float *ret,
 			       int background, int highlight, int lowlight)
 {
-    float max;
-    float hlfactor = 1.2F; /* try for 20% brighter */
-    int i;
+    float h, s, l;
+    rgb2hsl(ret[background*3], ret[background*3+1], ret[background*3+2], &h, &s, &l);
 
-    /*
-     * Drop the background colour so that the highlight is
-     * noticeably brighter than it while still being under 1.
-     */
-    max = ret[background*3];
-    for (i = 1; i < 3; i++)
-        if (ret[background*3+i] > max)
-            max = ret[background*3+i];
-    if (max * hlfactor > 1.0F) {
-        hlfactor = 1.0 / max; /* or settle for what we can get... */
-        if (hlfactor < 1.04) /* ... but only if it's at least 4% brighter */
-            hlfactor = 1.04;
-        if (max * hlfactor > 1.0F) {
-            for (i = 0; i < 3; i++)
-                ret[background*3+i] /= (max * hlfactor);
-        }
+    if (l * hlfactor > 1.0F) {
+        /*
+         * Drop the background colour so that the highlight is
+         * noticeably brighter than it while still maxing out
+         * at lightness 1.
+         */
+        l = 1.0F / hlfactor;
+        hsl2rgb(h, s, l, &ret[background*3], &ret[background*3+1], &ret[background*3+2]);
     }
 
-    for (i = 0; i < 3; i++) {
-	if (highlight >= 0)
-	    ret[highlight * 3 + i] = ret[background * 3 + i] * hlfactor;
-	if (lowlight >= 0)
-	    ret[lowlight * 3 + i] = ret[background * 3 + i] * 0.8F;
-    }
+    if (highlight >= 0)
+        hsl2rgb(h, s, l * hlfactor, &ret[highlight*3], &ret[highlight*3+1], &ret[highlight*3+2]);
+    if (lowlight >= 0)
+        hsl2rgb(h, s, l * llfactor, &ret[lowlight*3], &ret[lowlight*3+1], &ret[lowlight*3+2]);
 }
 
 void game_mkhighlight(frontend *fe, float *ret,
