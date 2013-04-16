@@ -909,7 +909,11 @@ static float *game_colours(frontend *fe, int *ncolours)
     float *ret = snewn(3 * NCOLOURS, float), max;
     int i;
 
-    frontend_default_colour(fe, &ret[COL_BACKGROUND * 3]);
+    /* We want to make sure we can distinguish COL_CORRECTCOLOUR
+     * (which we hard-code as white) from COL_BACKGROUND (which
+     * could default to white on some platforms).
+     * game_mkhighlight darkens background if needed. */
+    game_mkhighlight(fe, ret, COL_BACKGROUND, -1, -1);
 
     /* red */
     ret[COL_1 * 3 + 0] = 1.0F;
@@ -984,19 +988,6 @@ static float *game_colours(frontend *fe, int *ncolours)
     ret[COL_CORRECTCOLOUR*3 + 0] = 1.0F;
     ret[COL_CORRECTCOLOUR*3 + 1] = 1.0F;
     ret[COL_CORRECTCOLOUR*3 + 2] = 1.0F;
-
-    /* We want to make sure we can distinguish COL_CORRECTCOLOUR
-     * (which we hard-code as white) from COL_BACKGROUND (which
-     * could default to white on some platforms).
-     * Code borrowed from fifteen.c. */
-    max = ret[COL_BACKGROUND*3];
-    for (i = 1; i < 3; i++)
-        if (ret[COL_BACKGROUND*3+i] > max)
-            max = ret[COL_BACKGROUND*3+i];
-    if (max * 1.2F > 1.0F) {
-        for (i = 0; i < 3; i++)
-            ret[COL_BACKGROUND*3+i] /= (max * 1.2F);
-    }
 
     /* We also want to be able to tell the difference between BACKGROUND
      * and EMPTY, for similar distinguishing-hint reasons. */
