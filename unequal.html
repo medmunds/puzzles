@@ -137,6 +137,9 @@
     Module['noExitRuntime'] = true;
     // Load page with ?memmon query string for memory monitoring
     var ENABLE_C_MEMORY_MONITOR = (/[?&]memmon([&#]|$)/i).test(document.location.href);
+    if (ENABLE_C_MEMORY_MONITOR || (/[?&]debug([&#]|$)/i).test(document.location.href)) {
+        jQuery('#debug').show();
+    }
 </script>
 <script src="js/lib/jquery.requestAnimationFrame.min.js"></script>
 <script src="js/cmemmonitor.js"></script>
