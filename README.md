@@ -5,12 +5,17 @@ HTML5 Puzzles
 
 -----
 
-This is a *work in progress* HTML5/JavaScript port
-of [Simon Tatham's Portable Puzzle Collection][sgt-puzzles].
-All puzzles are [playable now][play];
-some current limitations are in the to-do list below.
+This is an *unmaintained, unfinished* (but working) HTML5/JavaScript port
+of [Simon Tatham's Portable Puzzle Collection][sgt-puzzles]
+from 2013. All puzzles are [playable][play];
+some limitations are in the to-do list below.
 
-I'm prioritizing making the puzzles work as well as possible
+\[Note that the source [puzzle collection][sgt-puzzles] has its
+own JavaScript build, which was originally released around the
+same time as this port. Since it's maintained, it's probably a 
+better starting point if you want to experiment.]
+
+I prioritized making the puzzles work as well as possible
 on tablets, phones, and other devices with small and/or touch
 screens. A virtual keyboard is included for (most) puzzles
 that need it.
@@ -61,3 +66,16 @@ To Do
 
 * Experiment with moving C code into a WebWorker, to avoid locking up
   the browser during puzzle generation.
+
+
+Building
+--------
+
+This port requires Emscripten 1.29.6. **Newer Emscripten versions won't work**
+because this code hasn't been updated to track emcc command-line and runtime changes.
+
+You should be able to build all the puzzles with `make TOOLPATH=/path/to/emscripten/1.29.6/bin/`.
+Other build targets are in the top-level [Makefile](Makefile); their names should be 
+self-explanatory. 
+
+See the [porting notes][porting] for additional discussion of this code.
