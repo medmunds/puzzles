@@ -166,6 +166,7 @@ var Puzzle = (function($) {
         $status.toggle(options.hasStatusBar);
 
         $('h1').text(options.name);
+        $('head title').text(options.name);
         $('.keyboard').toggle(options.usesNumpad);
         $('.command.game-solve').toggle(options.solveable);
     }
